@@ -1196,8 +1196,13 @@ function renderAuth(){
       btn.disabled = true; btn.textContent = 'Memeriksa...';
       try{
         const acc = findAccountByEmail(email, role);
+        if(!acc){
+          state.authError = 'Anda belum memiliki akun '+roleLabel+'. Klik "Daftar di sini" di bawah untuk mendaftar.';
+          renderAuth();
+          return;
+        }
         const passwordHash = await hashPassword(password);
-        if(!acc || acc.passwordHash !== passwordHash){
+        if(acc.passwordHash !== passwordHash){
           state.authError = 'Email atau password salah.';
           renderAuth();
           return;
