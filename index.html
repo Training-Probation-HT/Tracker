@@ -1,0 +1,2404 @@
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#2A1712;
+    --cream:#FFFFFF;
+    --cream-2:#F8ECE8;
+    --teal:#9C3320;
+    --teal-2:#3E7D53;
+    --brass:#C98A3E;
+    --brass-l:#F1D19B;
+    --terracotta:#5C1710;
+    --sage:#8A6A62;
+    --card:#FFFFFF;
+    --line:#EAD9D4;
+    font-family:'Work Sans',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  .tt-root{
+    background:var(--cream);
+    color:var(--ink);
+    min-height:100%;
+    padding:0 0 40px 0;
+    border-radius:14px;
+    overflow:hidden;
+  }
+  .tt-header{
+    background:var(--teal);
+    background-image:radial-gradient(circle at 15% 20%, rgba(255,255,255,0.05) 0, transparent 45%),
+                      radial-gradient(circle at 85% 80%, rgba(255,255,255,0.04) 0, transparent 40%);
+    color:var(--cream);
+    padding:22px 20px 18px;
+    position:relative;
+    border-bottom:6px solid var(--brass);
+  }
+  .tt-eyebrow{
+    font-size:11px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--brass-l);
+    font-weight:600;
+    margin-bottom:4px;
+  }
+  .tt-title{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:26px;
+    line-height:1.15;
+    margin:0;
+  }
+  .tt-sub{
+    font-size:13px;
+    color:#F3D6CE;
+    margin-top:6px;
+  }
+  .tt-tabs{
+    display:flex;
+    gap:0;
+    margin-top:18px;
+    border:1.5px solid rgba(255,255,255,0.35);
+    border-radius:10px;
+    overflow:hidden;
+    width:fit-content;
+  }
+  .tt-tab{
+    padding:9px 18px;
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:.02em;
+    cursor:pointer;
+    color:#F3D6CE;
+    background:transparent;
+    transition:all .15s ease;
+    user-select:none;
+  }
+  .tt-tab.active{
+    background:var(--brass);
+    color:var(--teal);
+  }
+  .tt-admin-corner{
+    position:absolute;
+    top:18px;
+    right:18px;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.02em;
+    color:#F3D6CE;
+    background:rgba(255,255,255,0.08);
+    border:1.5px solid rgba(255,255,255,0.35);
+    border-radius:8px;
+    padding:6px 12px;
+    cursor:pointer;
+    user-select:none;
+    transition:all .15s ease;
+  }
+  .tt-admin-corner:hover, .tt-admin-corner.active{
+    background:var(--brass);
+    color:var(--teal);
+    border-color:var(--brass);
+  }
+  @media (max-width:480px){
+    .tt-admin-corner{ top:14px; right:14px; padding:5px 10px; font-size:11px; }
+  }
+  .tt-body{ padding:18px 16px 10px; }
+  .tt-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:16px;
+    margin-bottom:14px;
+    box-shadow:0 1px 0 rgba(27,46,40,0.03);
+  }
+  .tt-label{
+    font-size:11px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--sage);
+    margin-bottom:6px;
+    display:block;
+  }
+  .tt-row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .tt-field{ flex:1; min-width:150px; margin-bottom:12px; }
+  input[type=text], input[type=date], select, textarea, .tt-input{
+    width:100%;
+    padding:10px 11px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    background:#fff;
+    font-family:'Work Sans',sans-serif;
+    font-size:14px;
+    color:var(--ink);
+    outline:none;
+  }
+  textarea{ resize:vertical; min-height:64px; line-height:1.4; }
+  input:focus, select:focus, textarea:focus, .tt-input:focus{
+    border-color:var(--brass);
+    box-shadow:0 0 0 3px rgba(180,132,45,0.15);
+  }
+  .tt-btn{
+    padding:10px 16px;
+    border-radius:8px;
+    border:none;
+    font-weight:600;
+    font-size:13.5px;
+    cursor:pointer;
+    transition:transform .08s ease, opacity .15s ease;
+  }
+  .tt-btn:active{ transform:scale(0.97); }
+  .tt-btn-primary{ background:var(--teal); color:var(--cream); }
+  .tt-btn-brass{ background:var(--brass); color:var(--teal); }
+  .tt-btn-ghost{ background:transparent; color:var(--teal); border:1.5px solid var(--line); }
+  .tt-btn:focus-visible{ outline:2px solid var(--brass); outline-offset:2px; }
+  .tt-dept-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(90px,1fr));
+    gap:8px;
+  }
+  .tt-dept-btn{
+    padding:12px 8px;
+    border-radius:10px;
+    border:1.5px solid var(--line);
+    background:#fff;
+    text-align:center;
+    cursor:pointer;
+    font-weight:600;
+    font-size:13px;
+    color:var(--teal);
+  }
+  .tt-dept-btn.active{
+    background:var(--teal);
+    color:var(--cream);
+    border-color:var(--teal);
+  }
+  .tt-bulan-block{ margin-bottom:18px; }
+  .tt-bulan-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    cursor:pointer;
+    padding:10px 4px;
+    border-bottom:2px solid var(--brass);
+    margin-bottom:10px;
+  }
+  .tt-bulan-num{
+    font-family:'Fraunces',serif;
+    font-size:22px;
+    font-weight:700;
+    color:var(--brass);
+    width:34px;
+  }
+  .tt-bulan-title{ font-weight:700; font-size:15px; color:var(--teal); flex:1; }
+  .tt-bulan-pct{ font-size:12.5px; font-weight:600; color:var(--sage); }
+  .tt-chevron{ transition:transform .2s ease; color:var(--sage); }
+  .tt-chevron.open{ transform:rotate(180deg); }
+  .tt-kategori{
+    font-size:12px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--teal-2);
+    margin:14px 0 6px;
+    padding-left:2px;
+  }
+  .tt-menu-input{ margin-bottom:10px; }
+  .tt-item{
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    padding:12px;
+    margin-bottom:8px;
+    background:#fff;
+    position:relative;
+  }
+  .tt-item.done{ border-color:var(--teal-2); background:#F4FAF7; }
+  .tt-item-point{ font-size:13.5px; line-height:1.4; margin-bottom:10px; padding-right:60px; }
+  .tt-stamp{
+    position:absolute;
+    top:10px; right:10px;
+    border:2px solid var(--teal-2);
+    color:var(--teal-2);
+    border-radius:6px;
+    font-size:9px;
+    font-weight:700;
+    letter-spacing:.04em;
+    padding:3px 6px;
+    transform:rotate(-6deg);
+    text-transform:uppercase;
+    background:rgba(30,82,72,0.06);
+  }
+  .tt-status-pills{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+  .tt-pill{
+    padding:7px 11px;
+    border-radius:20px;
+    border:1.5px solid var(--line);
+    font-size:12px;
+    font-weight:600;
+    cursor:pointer;
+    background:#fff;
+    color:var(--ink);
+    white-space:nowrap;
+  }
+  .tt-pill[data-val="Belum Diajarkan"].sel{ background:#EDEDED; border-color:#9A9A9A; }
+  .tt-pill[data-val="Sedang Diajarkan"].sel{ background:var(--brass-l); border-color:var(--brass); color:#5A3E0B; }
+  .tt-pill[data-val="Sudah Dikuasai"].sel{ background:var(--teal-2); border-color:var(--teal-2); color:#fff; }
+  .tt-pill[data-val="Lulus Probation"].sel{ background:var(--teal-2); border-color:var(--teal-2); color:#fff; }
+  .tt-pill[data-val="Perlu Tambahan Waktu"].sel{ background:var(--brass-l); border-color:var(--brass); color:#5A3E0B; }
+  .tt-pill[data-val="Tidak Lulus"].sel{ background:var(--terracotta); border-color:var(--terracotta); color:#fff; }
+  .tt-item-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .tt-item-grid input{ font-size:12.5px; padding:8px 9px; }
+  .tt-item-note{ grid-column:1/-1; }
+  .tt-final-item{ border-color:var(--brass); background:#FFFBF0; }
+  .tt-empty{
+    text-align:center; padding:30px 14px; color:var(--sage); font-size:13.5px;
+  }
+  .tt-table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  .tt-table th{
+    text-align:left; padding:8px 8px; background:var(--teal); color:var(--cream);
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; font-weight:600;
+  }
+  .tt-table th:first-child{ border-radius:8px 0 0 0; }
+  .tt-table th:last-child{ border-radius:0 8px 0 0; }
+  .tt-table td{ padding:9px 8px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  .tt-table tr:hover td{ background:#FBF6E9; cursor:pointer; }
+  .tt-badge{
+    font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:20px; white-space:nowrap;
+  }
+  .tt-badge.lulus{ background:var(--teal-2); color:#fff; }
+  .tt-badge.tambahan{ background:var(--brass-l); color:#5A3E0B; }
+  .tt-badge.tidak{ background:var(--terracotta); color:#fff; }
+  .tt-badge.jalan{ background:#EDEDED; color:#555; }
+  .tt-bar-cell{ display:flex; align-items:center; gap:6px; }
+  .tt-bar-track{ width:52px; height:7px; background:var(--line); border-radius:4px; overflow:hidden; }
+  .tt-bar-fill{ height:100%; background:var(--teal-2); }
+  .tt-filters{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .tt-filters select{ width:auto; min-width:130px; }
+  .tt-back{ display:inline-flex; align-items:center; gap:5px; font-size:12.5px; font-weight:600; color:var(--teal); cursor:pointer; margin-bottom:12px; }
+  .tt-summary-cards{ display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:10px; margin-bottom:16px; }
+  .tt-sumcard{ background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; }
+  .tt-sumnum{ font-family:'Fraunces',serif; font-size:26px; font-weight:700; color:var(--teal); }
+  .tt-sumlabel{ font-size:11px; color:var(--sage); font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+  .tt-toast{
+    position:fixed; bottom:16px; left:50%; transform:translateX(-50%);
+    background:var(--teal); color:var(--cream); padding:8px 16px; border-radius:20px;
+    font-size:12.5px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .25s ease;
+    z-index:50;
+  }
+  .tt-toast.show{ opacity:1; }
+  @media (max-width:480px){
+    .tt-item-grid{ grid-template-columns:1fr; }
+    .tt-title{ font-size:21px; }
+    .tt-tabs{ width:100%; }
+    .tt-tab{ flex:1; text-align:center; padding:9px 6px; }
+  }
+  .tt-admin-item{
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    padding:10px 12px;
+    margin-bottom:7px;
+    background:#fff;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+  }
+  .tt-admin-item-text{ flex:1; }
+  .tt-admin-item-meta{ font-size:10.5px; color:var(--sage); font-weight:600; text-transform:uppercase; letter-spacing:.03em; margin-bottom:3px; }
+  .tt-admin-item-point{ font-size:13px; line-height:1.4; }
+  .tt-admin-actions{ display:flex; gap:6px; flex-shrink:0; }
+  .tt-icon-btn{
+    border:1.5px solid var(--line);
+    background:#fff;
+    border-radius:7px;
+    padding:5px 9px;
+    font-size:11.5px;
+    font-weight:600;
+    cursor:pointer;
+    color:var(--teal);
+    white-space:nowrap;
+  }
+  .tt-icon-btn.danger{ color:var(--terracotta); border-color:var(--terracotta); }
+  .tt-icon-btn.confirm{ background:var(--terracotta); color:#fff; border-color:var(--terracotta); }
+  .tt-admin-edit-form{ width:100%; }
+  .tt-admin-edit-form .tt-field{ margin-bottom:8px; }
+  .tt-admin-add-card{ border:1.5px dashed var(--brass); background:#FFFBF0; }
+  .tt-admin-warn{
+    font-size:12px; color:#7A5A12; background:#FFF3D6; border:1px solid var(--brass-l);
+    padding:9px 11px; border-radius:8px; margin-bottom:14px; line-height:1.5;
+  }
+  select.tt-input{ appearance:auto; }
+  .tt-admin-gate{ text-align:center; padding:40px 16px; }
+  .tt-admin-gate-icon{ font-size:32px; margin-bottom:10px; }
+  .tt-admin-gate input{ max-width:220px; margin:14px auto 10px; text-align:center; letter-spacing:.15em; font-weight:700; }
+  .tt-chip-list{ display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+  .tt-chip{
+    display:flex; align-items:center; gap:8px;
+    padding:7px 8px 7px 12px;
+    border:1.5px solid var(--line);
+    border-radius:20px;
+    background:#fff;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink);
+  }
+  .tt-chip button{
+    border:none; background:var(--cream-2); color:var(--terracotta);
+    width:18px; height:18px; border-radius:50%; font-size:12px; font-weight:700;
+    cursor:pointer; line-height:1; display:flex; align-items:center; justify-content:center;
+  }
+  .tt-inline-add{ display:flex; gap:8px; margin-top:10px; }
+  .tt-inline-add input{ flex:1; }
+  .tt-inline-add button{ flex-shrink:0; }
+  .tt-outlet-row{ margin-bottom:14px; }
+  .tt-outlet-row:last-child{ margin-bottom:0; }
+  .tt-outlet-row-top{ display:flex; justify-content:space-between; font-size:13.5px; font-weight:700; color:var(--ink); margin-bottom:5px; }
+  .tt-outlet-track{ width:100%; height:8px; background:var(--line); border-radius:5px; overflow:hidden; }
+  .tt-outlet-fill{ height:100%; background:var(--teal-2); }
+  .tt-outlet-meta{ font-size:11px; color:var(--sage); margin-top:4px; }
+
+  /* ---------- RESPONSIVE: phone (default) / tablet / laptop ---------- */
+  html, body{ margin:0; padding:0; }
+  body{ background:var(--cream-2); }
+  .tt-root{
+    max-width:900px;
+    margin:0 auto;
+    width:100%;
+  }
+
+  /* Tablet and up: app becomes a centered floating card instead of edge-to-edge */
+  @media (min-width:641px){
+    body{ padding:32px 20px; }
+    .tt-root{
+      border:1px solid var(--line);
+      box-shadow:0 12px 40px rgba(42,23,18,0.10);
+    }
+    .tt-header{ padding:30px 36px 24px; }
+    .tt-body{ padding:24px 32px 16px; }
+    .tt-title{ font-size:28px; }
+    .tt-dept-grid{ grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); }
+    .tt-summary-cards{ grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); }
+    .tt-item-grid{ grid-template-columns:repeat(3,1fr); }
+    .tt-item-grid .tt-item-note{ grid-column:1/-1; }
+  }
+
+  /* Laptop/desktop: a bit more breathing room, slightly larger type */
+  @media (min-width:1024px){
+    body{ padding:44px 20px; }
+    .tt-root{ max-width:960px; }
+    .tt-header{ padding:34px 44px 26px; }
+    .tt-body{ padding:28px 40px 20px; }
+    .tt-title{ font-size:30px; }
+    .tt-sub{ font-size:14px; }
+    .tt-card{ padding:20px; }
+    .tt-item-grid{ grid-template-columns:repeat(4,1fr); }
+  }
+
+  /* Small phones: tighten up further */
+  @media (max-width:380px){
+    .tt-header{ padding:18px 14px 14px; }
+    .tt-body{ padding:14px 12px 8px; }
+    .tt-tab{ padding:8px 12px; font-size:12.5px; }
+  }
+</style>
+
+<div class="tt-root" id="ttRoot">
+  <div class="tt-header">
+    <div class="tt-admin-corner" data-tab="admin">Admin</div>
+    <div class="tt-eyebrow">Logbook Pembelajaran - HT</div>
+    <h1 class="tt-title">Training Tracker Probation</h1>
+    <div class="tt-sub">Hanya boleh diisi oleh Leader dan Validator</div>
+    <div class="tt-tabs">
+      <div class="tt-tab active" data-tab="leader" id="mainTabBtn">Isi Checklist</div>
+      <div class="tt-tab" data-tab="dashboard">Dashboard</div>
+      <div class="tt-tab" data-tab="panduan">Panduan</div>
+    </div>
+  </div>
+  <div class="tt-body" id="ttBody"></div>
+</div>
+<div class="tt-toast" id="ttToast">Tersimpan</div>
+
+<script>
+(function(){
+
+// ---------- CHECKLIST DATA (bawaan, dipakai hanya saat pertama kali dibuka) ----------
+const DEFAULT_DEPTS = {
+  kitchen: { label:"Kitchen", items: [
+    {no:1,bulan:1,kode:"A1",kat:"Food Safety & Hygiene",point:"Ajarkan cara cuci tangan 7 langkah & kapan wajib cuci tangan"},
+    {no:2,bulan:1,kode:"A1",kat:"Food Safety & Hygiene",point:"Ajarkan penggunaan APD (hairnet, apron, sarung tangan) sesuai SOP"},
+    {no:3,bulan:1,kode:"A1",kat:"Food Safety & Hygiene",point:"Ajarkan suhu kritis penyimpanan (chiller/freezer) & suhu penyajian"},
+    {no:4,bulan:1,kode:"A1",kat:"Food Safety & Hygiene",point:"Ajarkan sistem FIFO/FEFO & cara mengisi label bahan"},
+    {no:5,bulan:1,kode:"A2",kat:"Knife Skill & Food Prep",point:"Ajarkan cara pegang pisau aman (claw grip) & teknik potong dasar (julienne, dice, brunoise)"},
+    {no:6,bulan:1,kode:"A2",kat:"Knife Skill & Food Prep",point:"Ajarkan cara mise en place sesuai prep list"},
+    {no:7,bulan:1,kode:"A3",kat:"Teknik Memasak Peranakan",point:"Ajarkan resep baku menu signature & racikan bumbu dasar Peranakan"},
+    {no:8,bulan:1,kode:"A3",kat:"Teknik Memasak Peranakan",point:"Dampingi proses masak (kontrol api, waktu masak, standar rasa)"},
+    {no:9,bulan:1,kode:"A4",kat:"Peralatan Dapur",point:"Ajarkan pengoperasian alat dapur dengan aman (kompor, oven, steamer, fryer)"},
+    {no:10,bulan:1,kode:"A4",kat:"Peralatan Dapur",point:"Ajarkan prosedur darurat dasar (kebakaran minyak, lokasi APAR)"},
+    {no:11,bulan:1,kode:"A5",kat:"Stock & Food Cost",point:"Ajarkan par stock harian & cara membaca kebutuhan"},
+    {no:12,bulan:1,kode:"A5",kat:"Stock & Food Cost",point:"Ajarkan cara mencatat waste & portion control pakai alat ukur"},
+    {no:13,bulan:1,kode:"A6",kat:"Plating & Presentasi",point:"Ajarkan standar plating sesuai foto acuan"},
+    {no:14,bulan:1,kode:"A7",kat:"Speed & Ticket Time",point:"Ajarkan target waktu (ticket time) per kategori menu"},
+    {no:15,bulan:1,kode:"A8",kat:"Koordinasi & Komunikasi",point:"Ajarkan alur calling order & terminologi tim (waiter/kasir/runner)"},
+    {no:16,bulan:2,kode:"M1",kat:"Menu Nasi",point:"Rasa & bumbu sesuai resep baku (tidak berdasarkan feeling)"},
+    {no:17,bulan:2,kode:"M1",kat:"Menu Nasi",point:"Porsi & plating sesuai standar foto"},
+    {no:18,bulan:2,kode:"M1",kat:"Menu Nasi",point:"Waktu penyajian sesuai target, termasuk saat ramai"},
+    {no:19,bulan:2,kode:"M2",kat:"Menu Berkuah",point:"Rasa & kekentalan kuah sesuai resep baku"},
+    {no:20,bulan:2,kode:"M2",kat:"Menu Berkuah",point:"Porsi & plating sesuai standar foto"},
+    {no:21,bulan:2,kode:"M2",kat:"Menu Berkuah",point:"Waktu penyajian sesuai target, termasuk saat ramai"},
+    {no:22,bulan:2,kode:"M3",kat:"Menu Lauk & Main Dish",point:"Rasa & bumbu sesuai resep baku"},
+    {no:23,bulan:2,kode:"M3",kat:"Menu Lauk & Main Dish",point:"Porsi & plating sesuai standar foto"},
+    {no:24,bulan:2,kode:"M3",kat:"Menu Lauk & Main Dish",point:"Waktu penyajian sesuai target, termasuk saat ramai"},
+    {no:25,bulan:2,kode:"M4",kat:"Appetizer / Snack",point:"Rasa & tekstur sesuai resep baku"},
+    {no:26,bulan:2,kode:"M4",kat:"Appetizer / Snack",point:"Porsi & plating sesuai standar foto"},
+    {no:27,bulan:2,kode:"M4",kat:"Appetizer / Snack",point:"Waktu penyajian sesuai target, termasuk saat ramai"},
+    {no:28,bulan:3,kode:"R1",kat:"Kebersihan & Keamanan Pangan",point:"Karyawan sudah konsisten jalankan SOP kebersihan & keamanan pangan"},
+    {no:29,bulan:3,kode:"R2",kat:"Kemampuan Masak Mandiri",point:"Karyawan sudah bisa masak semua menu dasar sendiri tanpa dibantu"},
+    {no:30,bulan:3,kode:"R3",kat:"Kecepatan Kerja",point:"Karyawan sudah bisa jaga kecepatan kerja saat restoran ramai"},
+    {no:31,bulan:3,kode:"R4",kat:"Konsistensi Rasa & Tampilan",point:"Karyawan sudah bisa jaga rasa & tampilan makanan tetap sama setiap hari"},
+    {no:32,bulan:3,kode:"R5",kat:"Kerja Sama Tim",point:"Karyawan sudah bisa kerja sama baik dengan tim dapur & pramusaji"},
+    {no:33,bulan:3,kode:"R6",kat:"Kesimpulan Akhir",point:"Karyawan siap lanjut kerja tetap?",final:true},
+  ], menuFields:["M1","M2","M3","M4"] },
+
+  bar: { label:"Bar", items:[
+    {no:1,bulan:1,kode:"B1",kat:"SOP Minuman",point:"Ajarkan resep baku minuman signature & cara pakai alat ukur (bukan tuang bebas)"},
+    {no:2,bulan:1,kode:"B2",kat:"Alat Bar",point:"Ajarkan pengoperasian alat bar/coffee equipment (espresso machine, grinder, shaker, blender)"},
+    {no:3,bulan:1,kode:"B2",kat:"Alat Bar",point:"Ajarkan cleaning rutin harian alat bar (backflush, milk wand, dsb.)"},
+    {no:4,bulan:1,kode:"B3",kat:"Konsistensi Rasa",point:"Ajarkan standar rasio gula-es-bahan sesuai resep"},
+    {no:5,bulan:1,kode:"B4",kat:"Presentation & Garnish",point:"Ajarkan standar visual & garnish sesuai foto acuan"},
+    {no:6,bulan:1,kode:"B5",kat:"Speed Peak Hour",point:"Ajarkan target waktu penyajian per kategori minuman"},
+    {no:7,bulan:1,kode:"B6",kat:"Stock & Reconciliation",point:"Ajarkan par stock bahan bar & cara pencatatan penggunaan"},
+    {no:8,bulan:2,kode:"M1",kat:"Kopi",point:"Rasa & rasio (gula, susu, espresso) sesuai resep baku"},
+    {no:9,bulan:2,kode:"M1",kat:"Kopi",point:"Presentasi & garnish sesuai standar foto"},
+    {no:10,bulan:2,kode:"M1",kat:"Kopi",point:"Waktu penyajian sesuai target, termasuk saat ramai"},
+    {no:11,bulan:2,kode:"M2",kat:"Tea",point:"Rasa & rasio (gula, es, bahan) sesuai resep baku"},
+    {no:12,bulan:2,kode:"M2",kat:"Tea",point:"Presentasi & garnish sesuai standar foto"},
+    {no:13,bulan:2,kode:"M2",kat:"Tea",point:"Waktu penyajian sesuai target, termasuk saat ramai"},
+    {no:14,bulan:2,kode:"M3",kat:"Toast",point:"Rasa & tingkat kematangan sesuai resep baku"},
+    {no:15,bulan:2,kode:"M3",kat:"Toast",point:"Presentasi & plating sesuai standar foto"},
+    {no:16,bulan:2,kode:"M3",kat:"Toast",point:"Waktu penyajian sesuai target, termasuk saat ramai"},
+    {no:17,bulan:2,kode:"M4",kat:"Dessert",point:"Rasa & rasio bahan sesuai resep baku"},
+    {no:18,bulan:2,kode:"M4",kat:"Dessert",point:"Presentasi & garnish sesuai standar foto"},
+    {no:19,bulan:2,kode:"M4",kat:"Dessert",point:"Waktu penyajian sesuai target, termasuk saat ramai"},
+    {no:20,bulan:3,kode:"R1",kat:"Kebersihan Alat & Bahan",point:"Karyawan sudah konsisten jalankan SOP kebersihan alat & bahan"},
+    {no:21,bulan:3,kode:"R2",kat:"Kemampuan Buat Menu Mandiri",point:"Karyawan sudah bisa buat semua menu minuman dasar sendiri tanpa dibantu"},
+    {no:22,bulan:3,kode:"R3",kat:"Kecepatan Kerja",point:"Karyawan sudah bisa jaga kecepatan kerja saat restoran ramai"},
+    {no:23,bulan:3,kode:"R4",kat:"Konsistensi Rasa & Tampilan",point:"Karyawan sudah bisa jaga rasa & tampilan minuman tetap sama setiap hari"},
+    {no:24,bulan:3,kode:"R5",kat:"Kerja Sama Tim",point:"Karyawan sudah bisa kerja sama baik dengan tim dapur & pramusaji"},
+    {no:25,bulan:3,kode:"R6",kat:"Kesimpulan Akhir",point:"Karyawan siap lanjut kerja tetap?",final:true},
+  ], menuFields:["M1","M2","M3","M4"] },
+
+  kasir: { label:"Kasir", items:[
+    {no:1,bulan:1,kode:"K1",kat:"Pelayanan Pelanggan Dasar",point:"Ajarkan cara menyambut & melayani pelanggan dengan ramah (greeting, eye contact, senyum)"},
+    {no:2,bulan:1,kode:"K1",kat:"Pelayanan Pelanggan Dasar",point:"Ajarkan cara menjawab pertanyaan pelanggan tentang menu & promo dasar"},
+    {no:3,bulan:1,kode:"K2",kat:"Sistem Kasir (ESB)",point:"Ajarkan cara login/logout sistem kasir & buka-tutup shift"},
+    {no:4,bulan:1,kode:"K2",kat:"Sistem Kasir (ESB)",point:"Ajarkan cara input pesanan & baca struk di sistem ESB"},
+    {no:5,bulan:1,kode:"K3",kat:"Sistem Pembayaran",point:"Ajarkan jenis-jenis metode pembayaran yang diterima (cash, debit/kredit, QRIS, e-wallet)"},
+    {no:6,bulan:1,kode:"K3",kat:"Sistem Pembayaran",point:"Ajarkan cara menghitung kembalian dengan benar"},
+    {no:7,bulan:1,kode:"K4",kat:"Program Loyalty",point:"Ajarkan cara mendaftarkan member baru & cara kerja program loyalty"},
+    {no:8,bulan:1,kode:"K5",kat:"Taking Order",point:"Ajarkan cara mencatat pesanan pelanggan yang order langsung di kasir (menu, varian, catatan khusus)"},
+    {no:9,bulan:1,kode:"K6",kat:"Koordinasi Tim",point:"Ajarkan alur komunikasi dengan server & dapur/bar terkait pesanan"},
+    {no:10,bulan:2,kode:"M1",kat:"Taking Order",point:"Input pesanan ke sistem sesuai urutan & tanpa salah menu"},
+    {no:11,bulan:2,kode:"M1",kat:"Taking Order",point:"Konfirmasi ulang pesanan ke pelanggan sebelum diproses (repeat order)"},
+    {no:12,bulan:2,kode:"M1",kat:"Taking Order",point:"Kecepatan taking order sesuai target, termasuk saat ramai"},
+    {no:13,bulan:2,kode:"M2",kat:"Transaksi Pembayaran",point:"Proses pembayaran cash sesuai SOP (hitung uang, kembalian, cetak struk)"},
+    {no:14,bulan:2,kode:"M2",kat:"Transaksi Pembayaran",point:"Proses pembayaran non-cash (kartu, QRIS, e-wallet) sesuai SOP"},
+    {no:15,bulan:2,kode:"M2",kat:"Transaksi Pembayaran",point:"Kecepatan transaksi sesuai target, termasuk saat ramai"},
+    {no:16,bulan:2,kode:"M3",kat:"Program Loyalty",point:"Daftarkan member baru sesuai SOP"},
+    {no:17,bulan:2,kode:"M3",kat:"Program Loyalty",point:"Proses redeem poin/reward sesuai SOP"},
+    {no:18,bulan:2,kode:"M3",kat:"Program Loyalty",point:"Tawarkan program loyalty ke pelanggan baru secara konsisten"},
+    {no:19,bulan:2,kode:"M4",kat:"Buka & Tutup Shift",point:"Buka shift & hitung modal awal sesuai SOP"},
+    {no:20,bulan:2,kode:"M4",kat:"Buka & Tutup Shift",point:"Tutup shift & rekonsiliasi kas sesuai SOP"},
+    {no:21,bulan:2,kode:"M4",kat:"Buka & Tutup Shift",point:"Laporkan selisih kas (jika ada) sesuai prosedur"},
+    {no:22,bulan:2,kode:"M5",kat:"Penanganan Khusus",point:"Proses void/pembatalan transaksi sesuai SOP & approval"},
+    {no:23,bulan:2,kode:"M5",kat:"Penanganan Khusus",point:"Proses refund/komplain pembayaran sesuai SOP"},
+    {no:24,bulan:2,kode:"M5",kat:"Penanganan Khusus",point:"Eskalasi masalah sistem/pembayaran ke supervisor sesuai prosedur"},
+    {no:25,bulan:3,kode:"R1",kat:"Kebersihan & Keamanan Area Kasir",point:"Karyawan sudah konsisten jaga kebersihan & keamanan area kasir (uang, sistem)"},
+    {no:26,bulan:3,kode:"R2",kat:"Kemampuan Transaksi Mandiri",point:"Karyawan sudah bisa proses taking order, transaksi, & program loyalty sendiri tanpa dibantu"},
+    {no:27,bulan:3,kode:"R3",kat:"Kecepatan Kerja",point:"Karyawan sudah bisa jaga kecepatan transaksi saat restoran ramai"},
+    {no:28,bulan:3,kode:"R4",kat:"Akurasi & Kejujuran",point:"Karyawan sudah bisa jaga akurasi kas & kejujuran dalam setiap transaksi"},
+    {no:29,bulan:3,kode:"R5",kat:"Kerja Sama Tim",point:"Karyawan sudah bisa kerja sama baik dengan server & tim dapur/bar"},
+    {no:30,bulan:3,kode:"R6",kat:"Kesimpulan Akhir",point:"Karyawan siap lanjut kerja tetap?",final:true},
+  ]},
+
+  server: { label:"Server", items:[
+    {no:1,bulan:1,kode:"S1",kat:"Pelayanan Dasar",point:"Ajarkan cara menyambut & mengantar pelanggan ke meja dengan ramah"},
+    {no:2,bulan:1,kode:"S1",kat:"Pelayanan Dasar",point:"Ajarkan tata cara pelayanan dasar (grooming, sikap, bahasa tubuh)"},
+    {no:3,bulan:1,kode:"S2",kat:"Product Knowledge",point:"Ajarkan pengetahuan dasar menu (bahan, rasa, level pedas, alergen)"},
+    {no:4,bulan:1,kode:"S3",kat:"Persiapan Dining Area",point:"Ajarkan cara set up meja & alat makan sebelum service (table setting)"},
+    {no:5,bulan:1,kode:"S3",kat:"Persiapan Dining Area",point:"Ajarkan standar kebersihan dining area sebelum buka"},
+    {no:6,bulan:1,kode:"S4",kat:"Taking Order",point:"Ajarkan cara mencatat/input pesanan pelanggan dengan benar (sistem order/POS)"},
+    {no:7,bulan:1,kode:"S5",kat:"Upselling",point:"Ajarkan alur teknik melakukan upselling & cross-selling"},
+    {no:8,bulan:2,kode:"M1",kat:"Taking Order",point:"Ambil pesanan pelanggan dengan sopan & pastikan sesuai preferensi (level pedas, alergen, request khusus)"},
+    {no:9,bulan:2,kode:"M1",kat:"Taking Order",point:"Ulangi pesanan ke pelanggan untuk konfirmasi sebelum submit ke sistem"},
+    {no:10,bulan:2,kode:"M1",kat:"Taking Order",point:"Input pesanan ke sistem/POS dengan akurat & sesuai urutan meja"},
+    {no:11,bulan:2,kode:"M2",kat:"Pengantaran Pesanan",point:"Antar pesanan ke meja yang benar sesuai SOP (cross-check nomor meja/order)"},
+    {no:12,bulan:2,kode:"M2",kat:"Pengantaran Pesanan",point:"Konfirmasi pesanan ke pelanggan sebelum diletakkan (nama menu, alergen)"},
+    {no:13,bulan:2,kode:"M2",kat:"Pengantaran Pesanan",point:"Waktu pengantaran sesuai target, termasuk saat ramai"},
+    {no:14,bulan:2,kode:"M3",kat:"Persiapan & Kebersihan Dining Area",point:"Set up meja sesuai standar sebelum service dimulai"},
+    {no:15,bulan:2,kode:"M3",kat:"Persiapan & Kebersihan Dining Area",point:"Jaga kebersihan dining area sepanjang shift (lantai, meja, alat makan)"},
+    {no:16,bulan:2,kode:"M3",kat:"Persiapan & Kebersihan Dining Area",point:"Reset meja sesuai standar setelah pelanggan selesai"},
+    {no:17,bulan:2,kode:"M4",kat:"Pelayanan Selama Servis",point:"Tanggap terhadap kebutuhan tambahan pelanggan (air, sendok, dll) sesuai SOP"},
+    {no:18,bulan:2,kode:"M4",kat:"Pelayanan Selama Servis",point:"Tangani komplain dasar sesuai SOP eskalasi"},
+    {no:19,bulan:2,kode:"M4",kat:"Pelayanan Selama Servis",point:"Tawarkan menu tambahan (upselling) sesuai SOP secara sopan"},
+    {no:20,bulan:2,kode:"M5",kat:"Proses Closing Meja",point:"Clear meja & siapkan untuk tamu berikutnya sesuai SOP"},
+    {no:21,bulan:2,kode:"M5",kat:"Proses Closing Meja",point:"Bantu proses pembayaran/pengantaran struk ke kasir sesuai SOP"},
+    {no:22,bulan:2,kode:"M5",kat:"Proses Closing Meja",point:"Ucapkan terima kasih & antar pelanggan sesuai SOP"},
+    {no:23,bulan:3,kode:"R1",kat:"Kebersihan & Kerapian Dining Area",point:"Karyawan sudah konsisten jaga kebersihan & kerapian dining area"},
+    {no:24,bulan:3,kode:"R2",kat:"Kemampuan Layani Pelanggan Mandiri",point:"Karyawan sudah bisa layani pelanggan dari taking order sampai closing meja sendiri tanpa dibantu"},
+    {no:25,bulan:3,kode:"R3",kat:"Kecepatan Kerja",point:"Karyawan sudah bisa jaga kecepatan kerja saat restoran ramai"},
+    {no:26,bulan:3,kode:"R4",kat:"Sikap & Kesopanan Pelayanan",point:"Karyawan sudah bisa jaga sikap & kesopanan pelayanan ke pelanggan"},
+    {no:27,bulan:3,kode:"R5",kat:"Kerja Sama Tim",point:"Karyawan sudah bisa kerja sama baik dengan kasir & tim dapur/bar"},
+    {no:28,bulan:3,kode:"R6",kat:"Kesimpulan Akhir",point:"Karyawan siap lanjut kerja tetap?",final:true},
+  ]},
+};
+
+const STATUS_OPTS = ["Belum Diajarkan","Sedang Diajarkan","Sudah Dikuasai"];
+const FINAL_OPTS = ["Lulus Probation","Perlu Tambahan Waktu","Tidak Lulus"];
+// Label tampilan (nilai data tetap "Lulus Probation" di balik layar, biar data lama tidak rusak)
+const STATUS_LABELS = { "Lulus Probation": "Pembelajaran Selesai" };
+function statusLabel(v){ return STATUS_LABELS[v] || v; }
+const BULAN_TITLE = {1:"Kompetensi Dasar",2:"Produksi / SOP Sesuai Standar",3:"Review Keseluruhan"};
+
+const EYE_ICON = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/></svg>`;
+const EYE_OFF_ICON = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 3l18 18M10.6 10.6a3 3 0 0 0 4.2 4.2M9.9 4.24A11 11 0 0 1 12 4c7 0 11 7 11 7a13.3 13.3 0 0 1-3.05 3.94M6.1 6.1A13.3 13.3 0 0 0 1 11s4 7 11 7a10.9 10.9 0 0 0 4.24-.86" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+function passwordFieldHtml(id, label, placeholder){
+  return `<div class="tt-field">
+    <span class="tt-label">${esc(label)}</span>
+    <div style="position:relative;">
+      <input type="password" id="${id}" class="tt-input tt-pw-input" placeholder="${esc(placeholder)}" style="padding-right:42px;">
+      <button type="button" class="tt-pw-toggle" data-target="${id}" aria-label="Tampilkan/sembunyikan password" style="position:absolute; right:4px; top:50%; transform:translateY(-50%); background:none; border:none; padding:6px; cursor:pointer; color:var(--sage); display:flex; align-items:center;">${EYE_ICON}</button>
+    </div>
+  </div>`;
+}
+
+function bindPasswordToggles(){
+  document.querySelectorAll('.tt-pw-toggle').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const inp = document.getElementById(btn.dataset.target);
+      if(!inp) return;
+      const showing = inp.type === 'text';
+      inp.type = showing ? 'password' : 'text';
+      btn.innerHTML = showing ? EYE_ICON : EYE_OFF_ICON;
+    });
+  });
+}
+
+// ---------- STATE ----------
+let state = {
+  tab: "leader",
+  outlet: "",
+  dept: null,
+  currentEmployeeId: null,
+  employees: [],
+  progress: {},          // employeeId -> {item_no: {...}}
+  openBulan: {1:true,2:false,3:false},
+  leaderName: "",
+  dashFilterOutlet: "",
+  dashFilterDept: "",
+  dashFilterName: "",
+  dashDetailId: null,
+  dashFiltersTouched: false, // dashboard baru nampilin data setelah user pilih/isi filter minimal 1x
+  loaded: false,
+  depts: null,          // config checklist aktif (bisa diedit dari tab Admin)
+  leaderAccounts: [],    // akun leader terdaftar: {email, name, passwordHash, createdAt}
+  validatorAccounts: [], // akun validator terdaftar: {email, name, passwordHash, createdAt}
+  session: null,         // {email, name, role: 'leader'|'validator'}
+  authView: "login",     // "login" | "signup"
+  authRole: "leader",    // "leader" | "validator" — akun mana yang dipakai
+  authError: "",
+  authDraftName: "",
+  authDraftEmail: "",
+  outlets: [],           // daftar nama outlet (dikelola dari tab Admin)
+  adminPin: "1234",      // PIN default, bisa diganti dari tab Admin setelah masuk
+  adminUnlocked: false,  // status buka-kunci Admin untuk sesi berjalan ini
+  adminGateError: "",
+  adminDept: "kitchen",
+  adminEditingNo: null,
+  adminConfirmDeleteNo: null,
+  adminAdding: false,
+  panduanText: "",
+};
+
+// ---------- SYNC KE GOOGLE SHEET ----------
+// Tempel URL Web App hasil deploy Google Apps Script di sini (lihat panduan setup).
+// Contoh: "https://script.google.com/macros/s/AKfycb.../exec"
+const TRACKER_API_URL = "https://script.google.com/macros/s/AKfycbzDn8gs1DxjE99NkF0k4XlwEVe9hU129pjeK8WdLtGP7V0VLy6ap82y5a6nMuvnpaHV/exec";
+
+function postToSheet(payload){
+  if(!TRACKER_API_URL) return;
+  try{
+    fetch(TRACKER_API_URL, {
+      method: 'POST',
+      mode: 'no-cors', // fire-and-forget untuk log audit, tidak perlu baca respons
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    }).catch(function(err){ console.error('Sync log ke Google Sheet gagal:', err); });
+  }catch(err){ console.error('Sync log ke Google Sheet gagal:', err); }
+}
+
+// ---------- KV STORE (baca/tulis data utama dari Google Sheet) ----------
+async function kvFetchAll(){
+  const res = await fetch(TRACKER_API_URL);
+  const json = await res.json();
+  if(!json.ok) throw new Error(json.error || 'Gagal memuat data');
+  return json.data || {};
+}
+
+async function kvSet(key, value){
+  const res = await fetch(TRACKER_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ type: 'kv_set', key: key, value: value })
+  });
+  const json = await res.json();
+  if(!json.ok) throw new Error(json.error || 'Gagal menyimpan data');
+  return json;
+}
+
+// Upload foto ke Google Drive lewat Apps Script, balikin URL pendek (bukan base64 mentah)
+// supaya tidak melebihi batas 50.000 karakter per sel Google Sheet.
+async function uploadFotoToServer(dataUrl, employeeName, bulan){
+  const res = await fetch(TRACKER_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ type: 'upload_foto', dataUrl: dataUrl, employeeName: employeeName, bulan: bulan })
+  });
+  const json = await res.json();
+  if(!json.ok) throw new Error(json.error || 'Gagal upload foto');
+  return json.url;
+}
+
+const root = document.getElementById('ttBody');
+const toastEl = document.getElementById('ttToast');
+
+function showToast(msg){
+  toastEl.textContent = msg || "Tersimpan";
+  toastEl.classList.add('show');
+  setTimeout(()=>toastEl.classList.remove('show'), 1200);
+}
+
+// ---------- STORAGE ----------
+async function loadAll(){
+  let kvData = {};
+  try{
+    kvData = await kvFetchAll();
+  }catch(e){
+    console.error('Gagal memuat data dari server:', e);
+    state.loadError = true;
+  }
+
+  try{
+    const cfgRaw = kvData['checklist_config'];
+    state.depts = cfgRaw ? JSON.parse(cfgRaw) : null;
+  }catch(e){ state.depts = null; }
+  if(!state.depts){
+    // pertama kali dibuka: pakai bawaan, hitung nextNo per departemen, lalu simpan
+    state.depts = JSON.parse(JSON.stringify(DEFAULT_DEPTS));
+    Object.keys(state.depts).forEach(k=>{
+      const maxNo = state.depts[k].items.reduce((m,it)=>Math.max(m,it.no),0);
+      state.depts[k].nextNo = maxNo + 1;
+    });
+    await saveDepts();
+  }
+  try{
+    const empRaw = kvData['employees'];
+    state.employees = empRaw ? JSON.parse(empRaw) : [];
+  }catch(e){ state.employees = []; }
+
+  try{
+    const laRaw = kvData['leader_accounts'];
+    state.leaderAccounts = laRaw ? JSON.parse(laRaw) : [];
+  }catch(e){ state.leaderAccounts = []; }
+
+  try{
+    const vaAccRaw = kvData['validator_accounts'];
+    state.validatorAccounts = vaAccRaw ? JSON.parse(vaAccRaw) : [];
+  }catch(e){ state.validatorAccounts = []; }
+
+  // cek sesi login tersimpan di perangkat ini; validasi ulang ke daftar akun
+  // (kalau akunnya sudah dihapus admin, sesi lama otomatis tidak berlaku)
+  try{
+    const savedEmail = localStorage.getItem('tt_session_email');
+    const savedRole = localStorage.getItem('tt_session_role') || 'leader';
+    if(savedEmail){
+      const pool = savedRole === 'validator' ? state.validatorAccounts : state.leaderAccounts;
+      const acc = pool.find(a=>a.email.toLowerCase()===savedEmail.toLowerCase());
+      if(acc){
+        state.session = { email: acc.email, name: acc.name, role: savedRole };
+        if(savedRole === 'leader') state.leaderName = acc.name;
+      } else {
+        localStorage.removeItem('tt_session_email');
+        localStorage.removeItem('tt_session_role');
+      }
+    }
+  }catch(e){ /* abaikan */ }
+
+  try{
+    const otRaw = kvData['outlets_list'];
+    state.outlets = otRaw ? JSON.parse(otRaw) : [];
+  }catch(e){ state.outlets = []; }
+  try{
+    const pinRaw = kvData['admin_pin'];
+    if(pinRaw){ state.adminPin = String(pinRaw); }
+    else{ await saveAdminPin(); }
+  }catch(e){ /* pakai default */ }
+  try{
+    const pdRaw = kvData['panduan_text'];
+    state.panduanText = pdRaw || "Panduan belum diisi oleh Admin.";
+  }catch(e){ state.panduanText = "Panduan belum diisi oleh Admin."; }
+
+  // progress semua karyawan sudah ikut terbawa dalam satu kali fetch di atas
+  state.progress = {};
+  Object.keys(kvData).forEach(k=>{
+    if(k.indexOf('progress_')===0){
+      const empId = k.substring('progress_'.length);
+      try{ state.progress[empId] = JSON.parse(kvData[k]); }catch(e){ state.progress[empId] = {}; }
+    }
+  });
+
+  state.loaded = true;
+  render();
+  if(state.loadError) showToast('Gagal memuat data. Cek koneksi internet.');
+}
+
+async function savePanduan(){
+  try{ await kvSet('panduan_text', state.panduanText); }
+  catch(e){ console.error('save panduan failed', e); showToast('Gagal simpan panduan. Cek koneksi.'); throw e; }
+}
+
+async function saveDepts(){
+  try{ await kvSet('checklist_config', JSON.stringify(state.depts)); }
+  catch(e){ console.error('save checklist config failed', e); showToast('Gagal simpan. Cek koneksi.'); throw e; }
+}
+
+async function saveEmployees(){
+  try{ await kvSet('employees', JSON.stringify(state.employees)); }
+  catch(e){ console.error('save employees failed', e); showToast('Gagal simpan karyawan. Cek koneksi.'); throw e; }
+}
+
+async function loadProgress(empId){
+  // seluruh progress sudah dimuat sekaligus waktu loadAll(); ini cuma fallback jaga-jaga
+  if(state.progress[empId]) return state.progress[empId];
+  state.progress[empId] = {};
+  return state.progress[empId];
+}
+
+async function saveProgress(empId, itemKey){
+  try{ await kvSet('progress_'+empId, JSON.stringify(state.progress[empId]||{})); }
+  catch(e){ console.error('save progress failed', e); showToast('Gagal simpan. Cek koneksi & coba lagi.'); throw e; }
+
+  // Kirim baris detail ke Google Sheet hanya untuk perubahan item checklist (item_xx)
+  if(itemKey && itemKey.indexOf('item_')===0){
+    const emp = state.employees.find(e=>e.id===empId);
+    if(emp){
+      const items = deptItemsFor(emp.department);
+      const no = Number(itemKey.replace('item_',''));
+      const it = items.find(x=>x.no===no);
+      const v = (state.progress[empId] && state.progress[empId][itemKey]) || {};
+      if(it){
+        postToSheet({
+          type: 'progress',
+          timestamp: new Date().toISOString(),
+          leader: state.leaderName,
+          outlet: emp.outlet,
+          department: state.depts[emp.department] ? state.depts[emp.department].label : emp.department,
+          employeeName: emp.name,
+          employeeStartDate: emp.startDate || '',
+          itemNo: it.no,
+          kode: it.kode,
+          kategori: it.kat,
+          poin: it.point,
+          status: v.status || '',
+          tanggal: v.date || '',
+          paraf: v.paraf || '',
+          catatan: v.note || ''
+        });
+      }
+    }
+  }
+
+  // Kirim baris detail ke Google Sheet untuk perubahan validasi (validasi_bulanX) — foto/catatan/submit level bulan
+  if(itemKey && itemKey.indexOf('validasi_bulan')===0){
+    const emp = state.employees.find(e=>e.id===empId);
+    if(emp){
+      const bulan = Number(itemKey.replace('validasi_bulan',''));
+      const v = (state.progress[empId] && state.progress[empId][itemKey]) || {};
+      postToSheet({
+        type: 'validasi_bulan',
+        timestamp: new Date().toISOString(),
+        outlet: emp.outlet,
+        department: state.depts[emp.department] ? state.depts[emp.department].label : emp.department,
+        employeeName: emp.name,
+        bulan: bulan,
+        validator: v.validator || '',
+        tanggal: v.tanggal || '',
+        catatan: v.catatan || '',
+        foto: v.foto || '',
+        submitted: v.submitted ? 'Ya' : 'Belum'
+      });
+    }
+  }
+
+  // Kirim baris detail ke Google Sheet untuk validasi per-poin (val_item_xx)
+  if(itemKey && itemKey.indexOf('val_item_')===0){
+    const emp = state.employees.find(e=>e.id===empId);
+    if(emp){
+      const no = Number(itemKey.replace('val_item_',''));
+      const items = deptItemsFor(emp.department);
+      const it = items.find(x=>x.no===no);
+      const v = (state.progress[empId] && state.progress[empId][itemKey]) || {};
+      if(it){
+        postToSheet({
+          type: 'validasi_poin',
+          timestamp: new Date().toISOString(),
+          validator: state.session ? state.session.name : '',
+          outlet: emp.outlet,
+          department: state.depts[emp.department] ? state.depts[emp.department].label : emp.department,
+          employeeName: emp.name,
+          itemNo: it.no,
+          kode: it.kode,
+          kategori: it.kat,
+          poin: it.point,
+          valid: v.valid || '',
+          catatan: v.catatan || ''
+        });
+      }
+    }
+  }
+
+  // Kirim baris log ke Google Sheet untuk submit/buka-kembali per bulan
+  if(itemKey && itemKey.indexOf('submit_bulan')===0){
+    const emp = state.employees.find(e=>e.id===empId);
+    if(emp){
+      const bulan = Number(itemKey.replace('submit_bulan',''));
+      const v = (state.progress[empId] && state.progress[empId][itemKey]) || {};
+      postToSheet({
+        type: 'submit_bulan',
+        timestamp: new Date().toISOString(),
+        leader: state.leaderName,
+        outlet: emp.outlet,
+        department: state.depts[emp.department] ? state.depts[emp.department].label : emp.department,
+        employeeName: emp.name,
+        bulan: bulan,
+        submitted: v.submitted ? 'Ya' : 'Tidak (dibuka kembali)',
+        tanggal: v.date || ''
+      });
+    }
+  }
+}
+
+async function saveLeaderAccounts(){
+  try{ await kvSet('leader_accounts', JSON.stringify(state.leaderAccounts)); }
+  catch(e){ console.error('save leader accounts failed', e); showToast('Gagal simpan akun. Cek koneksi.'); throw e; }
+}
+
+async function saveValidatorAccounts(){
+  try{ await kvSet('validator_accounts', JSON.stringify(state.validatorAccounts)); }
+  catch(e){ console.error('save validator accounts failed', e); showToast('Gagal simpan akun. Cek koneksi.'); throw e; }
+}
+
+function accountsForRole(role){ return role === 'validator' ? state.validatorAccounts : state.leaderAccounts; }
+
+// ---------- AUTH HELPERS ----------
+// Password di-hash (SHA-256) sebelum dikirim/disimpan. Ini bukan tingkat keamanan
+// perbankan (tidak ada salt per-user, tidak ada verifikasi email), tapi cukup untuk
+// mencegah password leader/validator kebaca polos di Google Sheet.
+async function hashPassword(password){
+  const text = String(password);
+  if(window.crypto && window.crypto.subtle){
+    const enc = new TextEncoder().encode(text);
+    const buf = await window.crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+  // fallback sangat sederhana kalau browser tidak mendukung crypto.subtle
+  // (misalnya dibuka lewat http:// non-localhost) — tetap lebih baik dari plaintext.
+  let h = 0;
+  for(let i=0;i<text.length;i++){ h = ((h<<5)-h+text.charCodeAt(i))|0; }
+  return 'fallback_'+Math.abs(h).toString(16);
+}
+
+function isValidEmail(email){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
+
+function findAccountByEmail(email, role){
+  const e = String(email||'').trim().toLowerCase();
+  return accountsForRole(role).find(a=>a.email.toLowerCase()===e);
+}
+
+function setSession(acc, role){
+  state.session = { email: acc.email, name: acc.name, role: role };
+  if(role === 'leader') state.leaderName = acc.name;
+  state.authDraftEmail = "";
+  state.authDraftName = "";
+  try{
+    localStorage.setItem('tt_session_email', acc.email);
+    localStorage.setItem('tt_session_role', role);
+  }catch(e){}
+}
+
+function logout(){
+  state.session = null;
+  state.leaderName = "";
+  state.currentEmployeeId = null;
+  try{
+    localStorage.removeItem('tt_session_email');
+    localStorage.removeItem('tt_session_role');
+  }catch(e){}
+  state.authView = 'login';
+  state.authError = '';
+  render();
+}
+
+async function saveOutlets(){
+  try{ await kvSet('outlets_list', JSON.stringify(state.outlets)); }
+  catch(e){ console.error('save outlets failed', e); showToast('Gagal simpan. Cek koneksi.'); throw e; }
+}
+
+async function saveAdminPin(){
+  try{ await kvSet('admin_pin', state.adminPin); }
+  catch(e){ console.error('save admin pin failed', e); showToast('Gagal simpan PIN. Cek koneksi.'); throw e; }
+}
+
+// ---------- HELPERS ----------
+function esc(s){ return (s||"").replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function uid(){ return 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+// Kompres & resize foto sebelum disimpan, supaya ukurannya kecil (hemat kuota & kirim ke Drive)
+function compressImage(file){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const maxDim = 1280;
+        let w = img.width, h = img.height;
+        if(w > maxDim || h > maxDim){
+          if(w >= h){ h = Math.round(h * maxDim / w); w = maxDim; }
+          else{ w = Math.round(w * maxDim / h); h = maxDim; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.72));
+      };
+      img.onerror = ()=>reject(new Error('Gagal memuat gambar'));
+      img.src = e.target.result;
+    };
+    reader.onerror = ()=>reject(new Error('Gagal membaca file'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function deptItemsFor(deptKey){ return state.depts[deptKey] ? state.depts[deptKey].items : []; }
+
+function computeStats(empId, deptKey){
+  const items = deptItemsFor(deptKey);
+  const prog = state.progress[empId] || {};
+  const byBulan = {1:{done:0,total:0},2:{done:0,total:0},3:{done:0,total:0}};
+  let finalStatus = null;
+  items.forEach(it=>{
+    if(it.final){
+      const v = prog['item_'+it.no];
+      finalStatus = v && v.status ? v.status : null;
+      return;
+    }
+    byBulan[it.bulan].total++;
+    const v = prog['item_'+it.no];
+    if(v && v.status === 'Sudah Dikuasai') byBulan[it.bulan].done++;
+  });
+  const totalAll = byBulan[1].total+byBulan[2].total+byBulan[3].total;
+  const doneAll = byBulan[1].done+byBulan[2].done+byBulan[3].done;
+  return { byBulan, overallPct: totalAll ? Math.round(doneAll/totalAll*100) : 0, finalStatus };
+}
+
+// Verdict validasi keseluruhan (semua bulan digabung) untuk 1 karyawan, dipakai di Dashboard.
+// Valid = semua poin yang sudah "Sudah Dikuasai" juga sudah dinilai Valid (gak ada yang belum dinilai/Tidak Valid).
+// Tidak Valid = semua poin yang sudah "Sudah Dikuasai" dinilai Tidak Valid.
+// Proses Validasi = campuran, ada yang belum dinilai, atau belum ada poin yang eligible sama sekali.
+function computeValidasiVerdict(empId, deptKey){
+  const items = deptItemsFor(deptKey).filter(it=>!it.final);
+  const prog = state.progress[empId] || {};
+  const eligible = items.filter(it=>(prog['item_'+it.no]||{}).status === 'Sudah Dikuasai');
+  if(eligible.length === 0) return 'Proses Validasi';
+  let validCount=0, invalidCount=0, unratedCount=0;
+  eligible.forEach(it=>{
+    const vi = prog['val_item_'+it.no];
+    if(vi && vi.valid==='Valid') validCount++;
+    else if(vi && vi.valid==='Tidak Valid') invalidCount++;
+    else unratedCount++;
+  });
+  if(unratedCount===0 && invalidCount===0 && validCount>0) return 'Valid';
+  if(unratedCount===0 && validCount===0 && invalidCount>0) return 'Tidak Valid';
+  return 'Proses Validasi';
+}
+
+function isBulanComplete(stats, bulan){
+  const bs = stats.byBulan[bulan];
+  return bs.total > 0 && bs.done === bs.total;
+}
+function isBulanSubmitted(prog, bulan){
+  const s = prog['submit_bulan'+bulan];
+  return !!(s && s.submitted);
+}
+function isBulanLocked(prog, bulan){
+  if(bulan <= 1) return false;
+  return !isBulanSubmitted(prog, bulan-1);
+}
+
+function outletList(){
+  const s = new Set(state.employees.map(e=>e.outlet).filter(Boolean));
+  return Array.from(s);
+}
+
+function currentStageLabel(st){
+  if(st.finalStatus) return st.finalStatus;
+  for(const b of [1,2,3]){
+    const bs = st.byBulan[b];
+    if(bs.total>0 && bs.done < bs.total) return `Bulan ${b} — ${BULAN_TITLE[b]}`;
+  }
+  return 'Menunggu Kesimpulan Akhir';
+}
+
+// ---------- RENDER: TABS ----------
+document.querySelectorAll('.tt-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tt-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelector('.tt-admin-corner').classList.remove('active');
+    tab.classList.add('active');
+    state.tab = tab.dataset.tab;
+    state.dashDetailId = null;
+    render();
+  });
+});
+document.querySelector('.tt-admin-corner').addEventListener('click', ()=>{
+  document.querySelectorAll('.tt-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector('.tt-admin-corner').classList.add('active');
+  state.tab = 'admin';
+  state.dashDetailId = null;
+  render();
+});
+
+function updateMainTabLabel(){
+  const btn = document.getElementById('mainTabBtn');
+  if(!btn) return;
+  if(state.session && state.session.role === 'validator') btn.textContent = 'Validasi';
+  else btn.textContent = 'Isi Checklist';
+}
+
+function render(){
+  if(!state.loaded){ root.innerHTML = '<div class="tt-empty">Memuat data…</div>'; return; }
+  if(state.tab === 'admin'){
+    if(!state.adminUnlocked) renderAdminGate();
+    else renderAdmin();
+    return;
+  }
+  if(!state.session){ renderAuth(); return; }
+  updateMainTabLabel();
+  if(state.tab === 'leader'){
+    if(state.session.role === 'validator') renderValidator();
+    else renderLeader();
+  }
+  else if(state.tab === 'dashboard') renderDashboard();
+  else if(state.tab === 'panduan') renderPanduan();
+}
+
+// ---------- AUTH SCREEN (LOGIN / SIGNUP) ----------
+function renderAuth(){
+  const isSignup = state.authView === 'signup';
+  const role = state.authRole; // 'leader' | 'validator'
+  const roleLabel = role === 'validator' ? 'Validator' : 'Leader';
+
+  let html = `<div class="tt-card">
+    <span class="tt-label">Masuk sebagai</span>
+    <div class="tt-dept-grid" style="margin-top:6px; margin-bottom:14px;">
+      <div class="tt-dept-btn ${role==='leader'?'active':''}" data-authrole="leader">Leader</div>
+      <div class="tt-dept-btn ${role==='validator'?'active':''}" data-authrole="validator">Validator</div>
+    </div>
+
+    <div style="font-weight:700; font-size:16px; font-family:'Fraunces',serif; color:var(--teal); margin-bottom:2px;">${isSignup?('Daftar Akun '+roleLabel):('Masuk sebagai '+roleLabel)}</div>
+    <div style="font-size:12.5px; color:var(--sage); margin-bottom:14px;">${isSignup?'Buat akun sekali, dipakai untuk login setiap kali buka halaman ini.':'Masukkan email & password akun kamu.'}</div>`;
+
+  if(state.authError){
+    html += `<div style="font-size:12px; color:var(--terracotta); font-weight:600; margin-bottom:10px;">${esc(state.authError)}</div>`;
+  }
+
+  if(isSignup){
+    html += `
+      <div class="tt-field"><span class="tt-label">Nama Lengkap</span><input type="text" id="authName" class="tt-input" placeholder="Nama sesuai KTP/absensi" value="${esc(state.authDraftName)}"></div>
+      <div class="tt-field"><span class="tt-label">Email</span><input type="text" id="authEmail" class="tt-input" placeholder="nama@email.com" value="${esc(state.authDraftEmail)}"></div>
+      ${passwordFieldHtml('authPassword', 'Password', 'Minimal 6 karakter')}
+      ${passwordFieldHtml('authPassword2', 'Ulangi Password', 'Ulangi password')}
+      <button class="tt-btn tt-btn-primary" id="authSubmitBtn" style="width:100%;">Daftar</button>
+      <div style="text-align:center; margin-top:12px; font-size:12.5px;">Sudah punya akun? <a href="#" id="authSwitch" style="color:var(--teal); font-weight:600;">Masuk di sini</a></div>`;
+  } else {
+    html += `
+      <div class="tt-field"><span class="tt-label">Email</span><input type="text" id="authEmail" class="tt-input" placeholder="nama@email.com" value="${esc(state.authDraftEmail)}"></div>
+      ${passwordFieldHtml('authPassword', 'Password', 'Password')}
+      <button class="tt-btn tt-btn-primary" id="authSubmitBtn" style="width:100%;">Masuk</button>
+      <div style="text-align:center; margin-top:12px; font-size:12.5px;">Belum punya akun? <a href="#" id="authSwitch" style="color:var(--teal); font-weight:600;">Daftar di sini</a></div>`;
+  }
+  html += `</div>`;
+
+  root.innerHTML = html;
+  bindPasswordToggles();
+
+  document.querySelectorAll('[data-authrole]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      state.authRole = b.dataset.authrole;
+      state.authError = '';
+      renderAuth();
+    });
+  });
+
+  document.getElementById('authSwitch').addEventListener('click', (e)=>{
+    e.preventDefault();
+    state.authView = isSignup ? 'login' : 'signup';
+    state.authError = '';
+    renderAuth();
+  });
+
+  document.getElementById('authSubmitBtn').addEventListener('click', async ()=>{
+    const email = document.getElementById('authEmail').value.trim();
+    const password = document.getElementById('authPassword').value;
+    const btn = document.getElementById('authSubmitBtn');
+
+    // simpan draft supaya kalau gagal (misal salah password), email/nama tidak ikut hilang
+    state.authDraftEmail = email;
+    if(isSignup) state.authDraftName = document.getElementById('authName').value.trim();
+
+    if(!email || !isValidEmail(email)){ state.authError = 'Email tidak valid.'; renderAuth(); return; }
+    if(!password){ state.authError = 'Password wajib diisi.'; renderAuth(); return; }
+
+    if(isSignup){
+      const name = document.getElementById('authName').value.trim();
+      const password2 = document.getElementById('authPassword2').value;
+      if(!name){ state.authError = 'Nama wajib diisi.'; renderAuth(); return; }
+      if(password.length < 6){ state.authError = 'Password minimal 6 karakter.'; renderAuth(); return; }
+      if(password !== password2){ state.authError = 'Password & ulangi password tidak sama.'; renderAuth(); return; }
+      if(findAccountByEmail(email, role)){ state.authError = 'Email ini sudah terdaftar sebagai '+roleLabel+'. Coba masuk (login).'; renderAuth(); return; }
+
+      btn.disabled = true; btn.textContent = 'Mendaftarkan...';
+      try{
+        const passwordHash = await hashPassword(password);
+        const acc = { email, name, passwordHash, createdAt: new Date().toISOString() };
+        if(role === 'validator'){ state.validatorAccounts.push(acc); await saveValidatorAccounts(); }
+        else { state.leaderAccounts.push(acc); await saveLeaderAccounts(); }
+        setSession(acc, role);
+        state.authError = '';
+        render();
+      }catch(e){
+        console.error(e);
+        state.authError = 'Gagal mendaftar. Cek koneksi internet & coba lagi.';
+        renderAuth();
+      }
+    } else {
+      btn.disabled = true; btn.textContent = 'Memeriksa...';
+      try{
+        const acc = findAccountByEmail(email, role);
+        const passwordHash = await hashPassword(password);
+        if(!acc || acc.passwordHash !== passwordHash){
+          state.authError = 'Email atau password salah.';
+          renderAuth();
+          return;
+        }
+        setSession(acc, role);
+        state.authError = '';
+        render();
+      }catch(e){
+        console.error(e);
+        state.authError = 'Gagal login. Cek koneksi internet & coba lagi.';
+        renderAuth();
+      }
+    }
+  });
+}
+
+// ---------- PANDUAN ----------
+function renderPanduan(){
+  const text = state.panduanText || "Panduan belum diisi oleh Admin.";
+  root.innerHTML = `<div class="tt-card">
+    <span class="tt-label">Panduan Penggunaan</span>
+    <div style="font-size:13.5px; line-height:1.65; margin-top:8px; white-space:pre-wrap;">${esc(text)}</div>
+  </div>`;
+}
+
+// ---------- EXPORT / BACKUP ----------
+function downloadFile(filename, content, mimeType){
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
+function todayStamp(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+async function exportBackupJson(){
+  for(const e of state.employees){ await loadProgress(e.id); }
+  const backup = {
+    exportedAt: new Date().toISOString(),
+    depts: state.depts,
+    employees: state.employees,
+    progress: state.progress,
+    leaderAccounts: state.leaderAccounts.map(a=>({email:a.email, name:a.name, createdAt:a.createdAt})), // passwordHash sengaja tidak diikutkan di backup
+    outlets: state.outlets,
+    validatorAccounts: state.validatorAccounts.map(a=>({email:a.email, name:a.name, createdAt:a.createdAt})),
+    panduanText: state.panduanText
+  };
+  downloadFile('training-tracker-backup-'+todayStamp()+'.json', JSON.stringify(backup, null, 2), 'application/json');
+}
+
+function csvEscape(v){
+  const s = String(v==null?'':v);
+  if(/[",\n]/.test(s)) return '"'+s.replace(/"/g,'""')+'"';
+  return s;
+}
+
+async function exportSummaryCsv(){
+  for(const e of state.employees){ await loadProgress(e.id); }
+  const header = ['Nama Karyawan','Outlet','Departemen','Tanggal Mulai','Bulan 1 (%)','Bulan 2 (%)','Bulan 3 (%)','Total (%)','Status Akhir'];
+  const rows = state.employees.map(e=>{
+    const st = computeStats(e.id, e.department);
+    const pct = (b)=> st.byBulan[b].total ? Math.round(st.byBulan[b].done/st.byBulan[b].total*100) : 0;
+    return [
+      e.name, e.outlet, e.department, e.startDate||'',
+      pct(1), pct(2), pct(3), st.overallPct,
+      statusLabel(st.finalStatus) || 'Masih Berjalan'
+    ];
+  });
+  const csv = [header, ...rows].map(r=>r.map(csvEscape).join(',')).join('\n');
+  downloadFile('training-tracker-ringkasan-'+todayStamp()+'.csv', '\uFEFF'+csv, 'text/csv;charset=utf-8');
+}
+
+// ---------- ADMIN GATE (PIN) ----------
+function renderAdminGate(){
+  const html = `<div class="tt-card tt-admin-gate">
+    <div class="tt-admin-gate-icon">🔒</div>
+    <div style="font-weight:700; font-size:15px; color:var(--teal)">Akses Admin Terbatas</div>
+    <div style="font-size:12.5px; color:var(--sage); margin-top:4px;">Masukkan PIN Admin untuk mengelola checklist, daftar leader & outlet.</div>
+    <input type="text" inputmode="numeric" id="adminPinInput" class="tt-input" placeholder="PIN">
+    ${state.adminGateError?`<div style="font-size:12px; color:var(--terracotta); font-weight:600; margin-bottom:8px;">${esc(state.adminGateError)}</div>`:''}
+    <button class="tt-btn tt-btn-primary" id="adminPinSubmit" style="width:100%; max-width:220px;">Buka Admin</button>
+  </div>`;
+  root.innerHTML = html;
+  const input = document.getElementById('adminPinInput');
+  const submit = document.getElementById('adminPinSubmit');
+  const tryUnlock = ()=>{
+    if(input.value === String(state.adminPin)){
+      state.adminUnlocked = true;
+      state.adminGateError = "";
+      renderAdmin();
+    } else {
+      state.adminGateError = "PIN salah, coba lagi.";
+      renderAdminGate();
+    }
+  };
+  submit.addEventListener('click', tryUnlock);
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter') tryUnlock(); });
+  input.focus();
+}
+
+// ---------- LEADER TAB ----------
+function renderLeader(){
+  let html = '';
+
+  html += `<div class="tt-card" style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+    <div>
+      <span class="tt-label">Login sebagai</span>
+      <div style="font-weight:700; font-size:14.5px; color:var(--teal);">${esc(state.session.name)}</div>
+      <div style="font-size:11.5px; color:var(--sage);">${esc(state.session.email)}</div>
+    </div>
+    <button class="tt-btn tt-btn-ghost" id="logoutBtn" style="flex-shrink:0;">Keluar</button>
+  </div>`;
+
+  html += `<div class="tt-card">
+    <span class="tt-label">Outlet</span>
+    <select id="outletInput" class="tt-input">
+      <option value="">-- Pilih Outlet --</option>
+      ${state.outlets.map(o=>`<option value="${esc(o)}" ${state.outlet===o?'selected':''}>${esc(o)}</option>`).join('')}
+    </select>
+    ${state.outlets.length===0?'<div style="font-size:11.5px; color:var(--sage); margin-top:6px;">Belum ada outlet. Minta Admin menambahkannya di tab Admin.</div>':''}
+
+    <div style="height:12px"></div>
+    <span class="tt-label">Departemen</span>
+    <div class="tt-dept-grid">
+      ${Object.keys(state.depts).map(k=>`<div class="tt-dept-btn ${state.dept===k?'active':''}" data-dept="${k}">${state.depts[k].label}</div>`).join('')}
+    </div>
+  </div>`;
+
+  if(state.outlet && state.dept){
+    const filtered = state.employees.filter(e=>e.outlet===state.outlet && e.department===state.dept);
+    html += `<div class="tt-card">
+      <span class="tt-label">Karyawan</span>
+      <select id="empSelect" class="tt-input">
+        <option value="">-- Pilih Karyawan --</option>
+        ${filtered.map(e=>{
+          const st = computeStats(e.id, state.dept);
+          return `<option value="${e.id}" ${state.currentEmployeeId===e.id?'selected':''}>${esc(e.name)} — ${st.overallPct}% (Mulai ${e.startDate||'-'})</option>`;
+        }).join('')}
+      </select>
+      ${filtered.length===0?'<div class="tt-empty">Belum ada karyawan di outlet & departemen ini.</div>':''}
+      <div style="height:10px"></div>
+      <button class="tt-btn tt-btn-brass" id="addEmpBtn" style="width:100%">+ Tambah Karyawan Baru</button>
+      <div id="addEmpForm" style="display:none; margin-top:12px;">
+        <div class="tt-field"><span class="tt-label">Nama Karyawan</span><input type="text" id="newEmpName" class="tt-input" placeholder="Nama lengkap"></div>
+        <div class="tt-field"><span class="tt-label">Tanggal Mulai</span><input type="date" id="newEmpDate" class="tt-input"></div>
+        <button class="tt-btn tt-btn-primary" id="saveEmpBtn">Simpan Karyawan</button>
+      </div>
+    </div>`;
+  }
+
+  if(state.currentEmployeeId && state.dept){
+    html += `<div id="checklistArea"></div>`;
+  }
+
+  root.innerHTML = html;
+  bindLeaderEvents();
+  if(state.currentEmployeeId && state.dept){
+    renderChecklist();
+  }
+}
+
+function bindLeaderEvents(){
+  const logoutBtn = document.getElementById('logoutBtn');
+  if(logoutBtn) logoutBtn.addEventListener('click', ()=>{
+    if(confirm('Keluar dari akun ini?')) logout();
+  });
+
+  const oi = document.getElementById('outletInput');
+  if(oi) oi.addEventListener('change', e=>{ state.outlet = e.target.value; state.currentEmployeeId=null; render(); });
+
+  document.querySelectorAll('.tt-dept-btn').forEach(b=>{
+    b.addEventListener('click', ()=>{ state.dept = b.dataset.dept; state.currentEmployeeId=null; state.openBulan={1:true,2:false,3:false}; render(); });
+  });
+
+  const empSelect = document.getElementById('empSelect');
+  if(empSelect) empSelect.addEventListener('change', async ()=>{
+    state.currentEmployeeId = empSelect.value || null;
+    if(state.currentEmployeeId) await loadProgress(state.currentEmployeeId);
+    render();
+  });
+
+  const addBtn = document.getElementById('addEmpBtn');
+  if(addBtn) addBtn.addEventListener('click', ()=>{
+    document.getElementById('addEmpForm').style.display = 'block';
+    addBtn.style.display = 'none';
+  });
+
+  const saveEmpBtn = document.getElementById('saveEmpBtn');
+  if(saveEmpBtn) saveEmpBtn.addEventListener('click', async ()=>{
+    const name = document.getElementById('newEmpName').value.trim();
+    const date = document.getElementById('newEmpDate').value;
+    if(!name){ showToast('Nama wajib diisi'); return; }
+    const emp = { id: uid(), name, outlet: state.outlet, department: state.dept, startDate: date, createdAt: Date.now() };
+    state.employees.push(emp);
+    await saveEmployees();
+    postToSheet({
+      type: 'employee',
+      timestamp: new Date().toISOString(),
+      leader: state.leaderName,
+      id: emp.id,
+      nama: emp.name,
+      outlet: emp.outlet,
+      departemen: state.depts[emp.department] ? state.depts[emp.department].label : emp.department,
+      tanggalMulai: emp.startDate || ''
+    });
+    state.currentEmployeeId = emp.id;
+    state.progress[emp.id] = {};
+    render();
+    showToast('Karyawan ditambahkan');
+  });
+}
+
+function renderChecklist(){
+  const area = document.getElementById('checklistArea');
+  if(!area) return;
+  const emp = state.employees.find(e=>e.id===state.currentEmployeeId);
+  if(!emp){ area.innerHTML=''; return; }
+  const items = deptItemsFor(state.dept);
+  const stats = computeStats(emp.id, state.dept);
+  const prog = state.progress[emp.id] || {};
+
+  let html = `<div class="tt-card">
+    <span class="tt-label">Sedang mengisi checklist</span>
+    <div style="font-weight:700; font-size:16px; font-family:'Fraunces',serif; color:var(--teal)">${esc(emp.name)} &middot; ${state.depts[state.dept].label}</div>
+    <div style="font-size:12px; color:var(--sage); margin-top:2px">Progres keseluruhan: ${stats.overallPct}%</div>
+  </div>`;
+
+  [1,2,3].forEach(bulan=>{
+    const bulanItems = items.filter(it=>it.bulan===bulan);
+    const bs = stats.byBulan[bulan];
+    const pct = bs.total ? Math.round(bs.done/bs.total*100) : 0;
+    const locked = isBulanLocked(prog, bulan);
+    const submitted = isBulanSubmitted(prog, bulan);
+    const open = locked ? false : state.openBulan[bulan];
+    const subInfo = prog['submit_bulan'+bulan] || {};
+
+    html += `<div class="tt-card tt-bulan-block">
+      <div class="tt-bulan-head" data-bulan="${bulan}" data-locked="${locked?'1':'0'}" style="${locked?'opacity:.55; cursor:not-allowed;':''}">
+        <div class="tt-bulan-num">B${bulan}</div>
+        <div>
+          <div class="tt-bulan-title">Bulan ${bulan} — ${BULAN_TITLE[bulan]}${locked?' 🔒':(submitted?' ✓':'')}</div>
+          <div class="tt-bulan-pct">${locked?('Selesaikan & submit Bulan '+(bulan-1)+' dulu'):(bs.done+'/'+bs.total+' poin dikuasai ('+pct+'%)')}</div>
+        </div>
+        ${locked?'':`<svg class="tt-chevron ${open?'open':''}" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#5C7A6C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`}
+      </div>`;
+
+    if(locked){
+      html += `</div>`;
+      return;
+    }
+
+    html += `<div class="tt-bulan-content" style="display:${open?'block':'none'}">`;
+
+    if(submitted){
+      html += `<div class="tt-admin-warn" style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <span>✓ Bulan ${bulan} sudah disubmit${subInfo.date?(' pada '+esc(subInfo.date)):''}${subInfo.by?(' oleh '+esc(subInfo.by)):''}.</span>
+        <button class="tt-icon-btn" data-unsubmitbulan="${bulan}" style="flex-shrink:0;">Buka kembali untuk edit</button>
+      </div>`;
+    }
+
+    html += `<div class="tt-bulan-fields"${submitted?' style="pointer-events:none; opacity:.6;"':''}>`;
+
+    let lastKat = null;
+    bulanItems.forEach(it=>{
+      if(it.kat !== lastKat){
+        html += `<div class="tt-kategori">${esc(it.kat)}</div>`;
+        lastKat = it.kat;
+        const menuFields = state.depts[state.dept].menuFields;
+        if(bulan===2 && menuFields && menuFields.includes(it.kode)){
+          const menuVal = (prog['menu_'+it.kode] && prog['menu_'+it.kode].value) || '';
+          html += `<div class="tt-menu-input"><input type="text" class="tt-input menu-name-input" data-kode="${it.kode}" placeholder="Nama menu/varian yang diujikan" value="${esc(menuVal)}"></div>`;
+        }
+      }
+      const v = prog['item_'+it.no] || {};
+      const effStatus = v.status || 'Belum Diajarkan';
+      const opts = it.final ? FINAL_OPTS : STATUS_OPTS;
+      const isDone = effStatus === 'Sudah Dikuasai';
+      const vi = prog['val_item_'+it.no] || {};
+      html += `<div class="tt-item ${isDone?'done':''} ${it.final?'tt-final-item':''}" data-itemno="${it.no}">
+        ${isDone?'<div class="tt-stamp">✓ Dikuasai</div>':''}
+        <div class="tt-item-point">${esc(it.point)}</div>
+        <div class="tt-status-pills">
+          ${opts.map(o=>`<div class="tt-pill ${effStatus===o?'sel':''}" data-val="${esc(o)}">${esc(statusLabel(o))}</div>`).join('')}
+        </div>
+        <div class="tt-item-grid">
+          <input type="text" class="item-note tt-item-note" placeholder="Catatan (opsional)" value="${esc(v.note||'')}" style="grid-column:1/-1;">
+        </div>
+        ${vi.valid?`<div style="margin-top:8px; font-size:11.5px; color:${vi.valid==='Valid'?'var(--teal-2)':'var(--terracotta)'}; font-weight:600;">Validator: ${esc(vi.valid)}${vi.catatan?` &mdash; ${esc(vi.catatan)}`:''}</div>`:''}
+      </div>`;
+    });
+
+    // ---- Kartu Validasi (read-only untuk leader — hanya Validator yang bisa isi) ----
+    html += renderValidasiReadOnlyCard(bulan, items, prog);
+
+    html += `</div>`; // tutup .tt-bulan-fields (wrapper kunci-jika-disubmit)
+    html += `</div>`; // tutup .tt-bulan-content
+
+    if(!submitted){
+      html += `<div style="padding:2px 2px 4px;">
+        <button class="tt-btn tt-btn-primary" data-submitbulan="${bulan}" style="width:100%;">Submit Bulan ${bulan}</button>
+        <div style="font-size:11.5px; color:var(--sage); margin-top:6px; text-align:center;">Wajib submit untuk menyimpan progres training.</div>
+      </div>`;
+    }
+
+    html += `</div>`; // tutup .tt-card.tt-bulan-block
+  });
+
+  area.innerHTML = html;
+  bindChecklistEvents(emp.id);
+}
+
+function bindChecklistEvents(empId){
+  document.querySelectorAll('.tt-bulan-head').forEach(h=>{
+    h.addEventListener('click', ()=>{
+      if(h.dataset.locked === '1'){
+        showToast('Selesaikan & submit bulan sebelumnya dulu');
+        return;
+      }
+      const b = h.dataset.bulan;
+      state.openBulan[b] = !state.openBulan[b];
+      renderChecklist();
+    });
+  });
+
+  document.querySelectorAll('.menu-name-input').forEach(inp=>{
+    inp.addEventListener('change', async ()=>{
+      const kode = inp.dataset.kode;
+      state.progress[empId] = state.progress[empId] || {};
+      state.progress[empId]['menu_'+kode] = { value: inp.value };
+      await saveProgress(empId);
+      showToast();
+    });
+  });
+
+  document.querySelectorAll('.tt-item').forEach(itemEl=>{
+    const no = itemEl.dataset.itemno;
+    const key = 'item_'+no;
+
+    itemEl.querySelectorAll('.tt-pill').forEach(pill=>{
+      pill.addEventListener('click', async ()=>{
+        state.progress[empId] = state.progress[empId] || {};
+        state.progress[empId][key] = state.progress[empId][key] || {};
+        state.progress[empId][key].status = pill.dataset.val;
+        if(!state.progress[empId][key].date){
+          state.progress[empId][key].date = new Date().toISOString().slice(0,10);
+        }
+        if(!state.progress[empId][key].paraf && state.leaderName){
+          state.progress[empId][key].paraf = state.leaderName;
+        }
+        await saveProgress(empId, key);
+        renderChecklist();
+        showToast();
+      });
+    });
+
+    const noteInp = itemEl.querySelector('.item-note');
+    noteInp.addEventListener('change', async ()=>{
+      state.progress[empId] = state.progress[empId] || {};
+      state.progress[empId][key] = state.progress[empId][key] || {};
+      state.progress[empId][key].note = noteInp.value;
+      await saveProgress(empId, key);
+      showToast();
+    });
+  });
+
+  // ---- Submit / buka-kembali per bulan ----
+  document.querySelectorAll('[data-submitbulan]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const bulan = Number(btn.dataset.submitbulan);
+      const statsNow = computeStats(empId, state.dept);
+      const bsNow = statsNow.byBulan[bulan];
+      const complete = bsNow.total>0 && bsNow.done===bsNow.total;
+      const msg = complete
+        ? 'Submit Bulan '+bulan+'? Bulan berikutnya akan terbuka & bulan ini terkunci (bisa dibuka lagi kalau perlu edit).'
+        : 'Progres Bulan '+bulan+' baru '+bsNow.done+'/'+bsNow.total+' poin. Submit tetap akan menyimpan progres & membuka Bulan berikutnya, dan bulan ini terkunci sampai dibuka lagi. Lanjutkan?';
+      if(!confirm(msg)) return;
+
+      const key = 'submit_bulan'+bulan;
+      state.progress[empId] = state.progress[empId] || {};
+      state.progress[empId][key] = {
+        submitted: true,
+        date: new Date().toISOString().slice(0,10),
+        by: state.leaderName || (state.session ? state.session.name : '')
+      };
+      await saveProgress(empId, key);
+      renderChecklist();
+      showToast('Bulan '+bulan+' berhasil disubmit');
+    });
+  });
+
+  document.querySelectorAll('[data-unsubmitbulan]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const bulan = btn.dataset.unsubmitbulan;
+      if(!confirm('Buka kembali Bulan '+bulan+' untuk diedit? Bulan berikutnya (kalau sudah terbuka) akan terkunci lagi sampai bulan ini disubmit ulang.')) return;
+      const key = 'submit_bulan'+bulan;
+      state.progress[empId] = state.progress[empId] || {};
+      state.progress[empId][key] = { submitted: false };
+      await saveProgress(empId, key);
+      renderChecklist();
+      showToast('Bulan '+bulan+' dibuka kembali untuk edit');
+    });
+  });
+}
+
+// ---------- VALIDATOR TAB (picker sama seperti leader, tapi tanpa tambah karyawan) ----------
+function renderValidator(){
+  let html = '';
+
+  html += `<div class="tt-card" style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+    <div>
+      <span class="tt-label">Login sebagai (Validator)</span>
+      <div style="font-weight:700; font-size:14.5px; color:var(--teal);">${esc(state.session.name)}</div>
+      <div style="font-size:11.5px; color:var(--sage);">${esc(state.session.email)}</div>
+    </div>
+    <button class="tt-btn tt-btn-ghost" id="logoutBtn" style="flex-shrink:0;">Keluar</button>
+  </div>`;
+
+  html += `<div class="tt-card">
+    <span class="tt-label">Outlet</span>
+    <select id="outletInput" class="tt-input">
+      <option value="">-- Pilih Outlet --</option>
+      ${state.outlets.map(o=>`<option value="${esc(o)}" ${state.outlet===o?'selected':''}>${esc(o)}</option>`).join('')}
+    </select>
+    ${state.outlets.length===0?'<div style="font-size:11.5px; color:var(--sage); margin-top:6px;">Belum ada outlet. Minta Admin menambahkannya di tab Admin.</div>':''}
+
+    <div style="height:12px"></div>
+    <span class="tt-label">Departemen</span>
+    <div class="tt-dept-grid">
+      ${Object.keys(state.depts).map(k=>`<div class="tt-dept-btn ${state.dept===k?'active':''}" data-dept="${k}">${state.depts[k].label}</div>`).join('')}
+    </div>
+  </div>`;
+
+  if(state.outlet && state.dept){
+    const filtered = state.employees.filter(e=>e.outlet===state.outlet && e.department===state.dept);
+    html += `<div class="tt-card">
+      <span class="tt-label">Karyawan</span>
+      <select id="empSelect" class="tt-input">
+        <option value="">-- Pilih Karyawan --</option>
+        ${filtered.map(e=>`<option value="${e.id}" ${state.currentEmployeeId===e.id?'selected':''}>${esc(e.name)}</option>`).join('')}
+      </select>
+      ${filtered.length===0?'<div class="tt-empty">Belum ada karyawan di outlet & departemen ini. Minta leader menambahkan lewat tab miliknya.</div>':''}
+    </div>`;
+  }
+
+  if(state.currentEmployeeId && state.dept){
+    html += `<div id="checklistArea"></div>`;
+  }
+
+  root.innerHTML = html;
+  bindValidatorEvents();
+  if(state.currentEmployeeId && state.dept){
+    renderValidationPanel();
+  }
+}
+
+function bindValidatorEvents(){
+  const logoutBtn = document.getElementById('logoutBtn');
+  if(logoutBtn) logoutBtn.addEventListener('click', ()=>{
+    if(confirm('Keluar dari akun ini?')) logout();
+  });
+
+  const oi = document.getElementById('outletInput');
+  if(oi) oi.addEventListener('change', e=>{ state.outlet = e.target.value; state.currentEmployeeId=null; render(); });
+
+  document.querySelectorAll('.tt-dept-btn').forEach(b=>{
+    b.addEventListener('click', ()=>{ state.dept = b.dataset.dept; state.currentEmployeeId=null; render(); });
+  });
+
+  const empSelect = document.getElementById('empSelect');
+  if(empSelect) empSelect.addEventListener('change', async ()=>{
+    state.currentEmployeeId = empSelect.value || null;
+    if(state.currentEmployeeId) await loadProgress(state.currentEmployeeId);
+    render();
+  });
+}
+
+// Kartu ringkasan validasi read-only, dipakai di halaman Leader (tidak bisa diedit)
+// Kartu ringkasan validasi read-only, dipakai di halaman Leader (tidak bisa diedit)
+function renderValidasiReadOnlyCard(bulan, items, prog){
+  const vKey = 'validasi_bulan'+bulan;
+  const vv = prog[vKey] || {};
+  const doneItems = items.filter(it=>it.bulan===bulan && !it.final && (prog['item_'+it.no]||{}).status === 'Sudah Dikuasai');
+  let validCount = 0, invalidCount = 0;
+  doneItems.forEach(it=>{
+    const vi = prog['val_item_'+it.no];
+    if(vi && vi.valid === 'Valid') validCount++;
+    else if(vi && vi.valid === 'Tidak Valid') invalidCount++;
+  });
+  const ratedCount = validCount + invalidCount;
+
+  return `<div class="tt-card" style="border-color:var(--brass);">
+    <span class="tt-label">Validasi Bulan ${bulan} <span style="font-weight:400; text-transform:none; color:var(--sage);">&middot; diisi Validator</span></span>
+    <div style="font-size:12.5px; color:var(--sage); margin-top:8px;">
+      ${doneItems.length===0
+        ? 'Belum ada poin &quot;Sudah Dikuasai&quot; untuk divalidasi.'
+        : ratedCount+'/'+doneItems.length+' poin sudah dinilai'+(ratedCount>0?` &middot; <span style="color:var(--teal-2); font-weight:600;">${validCount} Valid</span>`+(invalidCount>0?`, <span style="color:var(--terracotta); font-weight:600;">${invalidCount} Tidak Valid</span>`:''):'')}
+    </div>
+    ${vv.foto?`<div style="margin-top:10px;"><img src="${vv.foto}" style="width:56px; height:56px; object-fit:cover; border-radius:8px; border:1.5px solid var(--line);"></div>`:''}
+    ${vv.catatan?`<div style="font-size:12px; color:var(--sage); margin-top:8px;">Catatan: ${esc(vv.catatan)}</div>`:''}
+    ${vv.submitted
+      ? `<div style="font-size:12px; color:var(--teal-2); font-weight:600; margin-top:8px;">✓ Disubmit${vv.tanggal?(' pada '+esc(vv.tanggal)):''}${vv.validator?(' oleh '+esc(vv.validator)):''}</div>`
+      : `<div style="font-size:11.5px; color:var(--sage); margin-top:8px; font-style:italic;">Menunggu Validator submit validasi bulan ini.</div>`}
+  </div>`;
+}
+
+// Panel validasi per-poin yang bisa diisi Validator. Poin yang bisa dinilai
+// hanya yang statusnya "Sudah Dikuasai" dari leader. Foto bukti & submit tetap 1x per bulan.
+function renderValidationPanel(){
+  const area = document.getElementById('checklistArea');
+  if(!area) return;
+  const emp = state.employees.find(e=>e.id===state.currentEmployeeId);
+  if(!emp){ area.innerHTML=''; return; }
+  const items = deptItemsFor(state.dept);
+  const prog = state.progress[emp.id] || {};
+  const stats = computeStats(emp.id, state.dept);
+
+  let html = `<div class="tt-card">
+    <span class="tt-label">Validasi untuk</span>
+    <div style="font-weight:700; font-size:16px; font-family:'Fraunces',serif; color:var(--teal)">${esc(emp.name)} &middot; ${state.depts[state.dept].label}</div>
+  </div>`;
+
+  [1,2,3].forEach(bulan=>{
+    const bulanItems = items.filter(it=>it.bulan===bulan && !it.final);
+    const doneItems = bulanItems.filter(it=>(prog['item_'+it.no]||{}).status === 'Sudah Dikuasai');
+    const pendingCount = bulanItems.length - doneItems.length;
+    const vKey = 'validasi_bulan'+bulan;
+    const vv = prog[vKey] || {};
+    const vSubmitted = !!vv.submitted;
+    const bulanComplete = isBulanComplete(stats, bulan);
+
+    let ratedCount = 0;
+    doneItems.forEach(it=>{ if((prog['val_item_'+it.no]||{}).valid) ratedCount++; });
+    // Foto cuma wajib begitu leader sudah menyelesaikan SEMUA poin di bulan ini.
+    // Sebelum itu, validator tetap bisa submit progres tanpa foto.
+    const canSubmitVal = bulanComplete ? !!vv.foto : true;
+
+    html += `<div class="tt-card tt-bulan-block">
+      <div class="tt-bulan-head" style="cursor:default;">
+        <div class="tt-bulan-num">B${bulan}</div>
+        <div>
+          <div class="tt-bulan-title">Bulan ${bulan} — ${BULAN_TITLE[bulan]}${vSubmitted?' ✓':''}</div>
+          <div class="tt-bulan-pct">${doneItems.length} poin siap divalidasi (${ratedCount}/${doneItems.length} dinilai)${pendingCount>0?' &middot; '+pendingCount+' poin belum &quot;Sudah Dikuasai&quot;':''}</div>
+        </div>
+      </div>`;
+
+    if(doneItems.length === 0){
+      html += `<div style="padding:8px 4px 4px; font-size:12.5px; color:var(--sage);">Belum ada poin berstatus &quot;Sudah Dikuasai&quot; di bulan ini untuk divalidasi.</div></div>`;
+      return;
+    }
+
+    if(vSubmitted){
+      html += `<div class="tt-admin-warn" style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <span>✓ Validasi Bulan ${bulan} sudah disubmit${vv.tanggal?(' pada '+esc(vv.tanggal)):''}${vv.validator?(' oleh '+esc(vv.validator)):''}.${ratedCount<doneItems.length?' Ada poin baru yang belum dinilai.':''}${bulanComplete && !vv.foto?' Bulan ini sudah lengkap &mdash; foto bukti wajib dilengkapi.':''}</span>
+        <button class="tt-icon-btn" data-unsubmitval="${bulan}" style="flex-shrink:0;">Buka kembali untuk edit</button>
+      </div>`;
+    }
+
+    html += `<div class="tt-bulan-fields"${vSubmitted?' style="pointer-events:none; opacity:.6;"':''}>`;
+
+    let lastKat = null;
+    doneItems.forEach(it=>{
+      if(it.kat !== lastKat){
+        html += `<div class="tt-kategori">${esc(it.kat)}</div>`;
+        lastKat = it.kat;
+      }
+      const vi = prog['val_item_'+it.no] || {};
+      html += `<div class="tt-item" data-valitemno="${it.no}">
+        <div class="tt-item-point">${esc(it.point)}</div>
+        <div class="tt-status-pills">
+          <div class="tt-pill" data-val="Valid" style="${vi.valid==='Valid'?'background:var(--teal-2); border-color:var(--teal-2); color:#fff;':''}">Valid</div>
+          <div class="tt-pill" data-val="Tidak Valid" style="${vi.valid==='Tidak Valid'?'background:var(--terracotta); border-color:var(--terracotta); color:#fff;':''}">Tidak Valid</div>
+        </div>
+        <div class="tt-item-grid">
+          <input type="text" class="val-item-note" data-valno="${it.no}" placeholder="Catatan (opsional)" value="${esc(vi.catatan||'')}" style="grid-column:1/-1;">
+        </div>
+      </div>`;
+    });
+
+    const fotoLabelSuffix = vv.foto ? '' : (bulanComplete
+      ? '<span style="color:var(--terracotta); text-transform:none; font-weight:700;">&middot; wajib diisi (bulan ini sudah lengkap)</span>'
+      : '<span style="color:var(--sage); text-transform:none; font-weight:400;">&middot; opsional dulu, wajib kalau semua poin bulan ini sudah &quot;Sudah Dikuasai&quot;</span>');
+
+    html += `<div class="tt-field" style="margin-top:14px; margin-bottom:10px;">
+      <span class="tt-label">Foto Bukti Validasi Bulan ${bulan} ${fotoLabelSuffix}</span>
+      <input type="file" accept="image/*" capture="environment" class="tt-input val-foto" data-vbulan="${bulan}">
+      ${vv.foto?`<div style="margin-top:8px; display:flex; align-items:center; gap:8px;">
+        <img src="${vv.foto}" style="width:64px; height:64px; object-fit:cover; border-radius:8px; border:1.5px solid var(--line);">
+        <span style="font-size:12px; color:var(--teal-2); font-weight:600;">Foto tersimpan &middot; pilih file lagi untuk ganti</span>
+      </div>`:'<div style="font-size:11.5px; color:var(--sage); margin-top:6px;">Ambil foto langsung dari kamera atau pilih dari galeri (1x untuk seluruh bulan ini).</div>'}
+    </div>
+    <div class="tt-item-grid">
+      <input type="text" class="tt-item-note val-note" data-vbulan="${bulan}" placeholder="Catatan validator umum (opsional)" value="${esc(vv.catatan||'')}" style="grid-column:1/-1;">
+    </div>`;
+
+    html += `</div>`; // tutup .tt-bulan-fields
+
+    if(!vSubmitted){
+      html += `<div style="padding:10px 2px 2px;">
+        <button class="tt-btn ${canSubmitVal?'tt-btn-primary':'tt-btn-ghost'}" data-submitval="${bulan}" ${canSubmitVal?'':'disabled'} style="width:100%;">Submit Validasi Progres</button>
+        <div style="font-size:11.5px; color:var(--sage); margin-top:6px; text-align:center;">${canSubmitVal?'Wajib submit untuk menyimpan progres validasi.':'Bulan ini sudah lengkap &mdash; upload foto bukti dulu sebelum submit.'}</div>
+      </div>`;
+    }
+
+    html += `</div>`; // tutup .tt-card.tt-bulan-block
+  });
+
+  area.innerHTML = html;
+  bindValidationEvents(emp.id);
+}
+
+function bindValidationEvents(empId){
+  document.querySelectorAll('.tt-item[data-valitemno]').forEach(itemEl=>{
+    const no = itemEl.dataset.valitemno;
+    const key = 'val_item_'+no;
+    itemEl.querySelectorAll('.tt-pill').forEach(pill=>{
+      pill.addEventListener('click', async ()=>{
+        state.progress[empId] = state.progress[empId] || {};
+        state.progress[empId][key] = state.progress[empId][key] || {};
+        state.progress[empId][key].valid = pill.dataset.val;
+        await saveProgress(empId, key);
+        renderValidationPanel();
+        showToast();
+      });
+    });
+  });
+
+  document.querySelectorAll('.val-item-note').forEach(inp=>{
+    inp.addEventListener('change', async ()=>{
+      const no = inp.dataset.valno;
+      const key = 'val_item_'+no;
+      state.progress[empId] = state.progress[empId] || {};
+      state.progress[empId][key] = state.progress[empId][key] || {};
+      state.progress[empId][key].catatan = inp.value;
+      await saveProgress(empId, key);
+      showToast();
+    });
+  });
+
+  document.querySelectorAll('.val-foto').forEach(inp=>{
+    inp.addEventListener('change', async ()=>{
+      const file = inp.files && inp.files[0];
+      if(!file) return;
+      const bulan = inp.dataset.vbulan;
+      const vKey = 'validasi_bulan'+bulan;
+      const emp = state.employees.find(e=>e.id===empId);
+      try{
+        showToast('Memproses foto...');
+        const dataUrl = await compressImage(file);
+        showToast('Mengupload foto...');
+        const url = await uploadFotoToServer(dataUrl, emp ? emp.name : '', bulan);
+        state.progress[empId] = state.progress[empId] || {};
+        state.progress[empId][vKey] = state.progress[empId][vKey] || {};
+        state.progress[empId][vKey].foto = url;
+        state.progress[empId][vKey].validator = state.session.name;
+        await saveProgress(empId, vKey);
+        renderValidationPanel();
+        showToast('Foto tersimpan');
+      }catch(err){
+        console.error('Gagal memproses/upload foto', err);
+        showToast('Gagal upload foto. Cek koneksi & coba lagi.');
+      }
+    });
+  });
+
+  document.querySelectorAll('.val-note').forEach(inp=>{
+    inp.addEventListener('change', async ()=>{
+      const bulan = inp.dataset.vbulan;
+      const vKey = 'validasi_bulan'+bulan;
+      state.progress[empId] = state.progress[empId] || {};
+      state.progress[empId][vKey] = state.progress[empId][vKey] || {};
+      state.progress[empId][vKey].catatan = inp.value;
+      state.progress[empId][vKey].validator = state.session.name;
+      await saveProgress(empId, vKey);
+      showToast();
+    });
+  });
+
+  document.querySelectorAll('[data-submitval]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const bulan = btn.dataset.submitval;
+      const vKey = 'validasi_bulan'+bulan;
+      state.progress[empId] = state.progress[empId] || {};
+      state.progress[empId][vKey] = state.progress[empId][vKey] || {};
+      state.progress[empId][vKey].validator = state.session.name;
+      state.progress[empId][vKey].submitted = true;
+      state.progress[empId][vKey].tanggal = state.progress[empId][vKey].tanggal || new Date().toISOString().slice(0,10);
+      await saveProgress(empId, vKey);
+      renderValidationPanel();
+      showToast('Validasi Bulan '+bulan+' berhasil disubmit');
+    });
+  });
+
+  document.querySelectorAll('[data-unsubmitval]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const bulan = btn.dataset.unsubmitval;
+      if(!confirm('Buka kembali validasi Bulan '+bulan+' untuk diedit?')) return;
+      const vKey = 'validasi_bulan'+bulan;
+      state.progress[empId] = state.progress[empId] || {};
+      state.progress[empId][vKey] = state.progress[empId][vKey] || {};
+      state.progress[empId][vKey].submitted = false;
+      await saveProgress(empId, vKey);
+      renderValidationPanel();
+      showToast('Validasi Bulan '+bulan+' dibuka kembali');
+    });
+  });
+}
+async function renderDashboard(){
+  if(state.dashDetailId){
+    await renderDashboardDetail();
+    return;
+  }
+  let html = '';
+  const outlets = outletList();
+
+  html += `<div class="tt-filters">
+    <input type="text" id="filterName" class="tt-input" style="width:auto; min-width:170px; flex:1;" placeholder="Cari nama karyawan..." value="${esc(state.dashFilterName)}">
+    <select id="filterOutlet">
+      <option value="">Semua Outlet</option>
+      ${outlets.map(o=>`<option value="${esc(o)}" ${state.dashFilterOutlet===o?'selected':''}>${esc(o)}</option>`).join('')}
+    </select>
+    <select id="filterDept">
+      <option value="">Semua Departemen</option>
+      ${Object.keys(state.depts).map(k=>`<option value="${k}" ${state.dashFilterDept===k?'selected':''}>${state.depts[k].label}</option>`).join('')}
+    </select>
+  </div>`;
+
+  if(!state.dashFiltersTouched){
+    html += `<div class="tt-empty">Pilih Outlet dan/atau Departemen dulu di atas untuk menampilkan data.<br>Mau lihat semua? Pilih salah satu dropdown lalu biarkan di "Semua Outlet"/"Semua Departemen".</div>`;
+    root.innerHTML = html;
+    bindDashboardFilterEvents();
+    return;
+  }
+
+  let list = state.employees.filter(e=>{
+    if(state.dashFilterOutlet && e.outlet !== state.dashFilterOutlet) return false;
+    if(state.dashFilterDept && e.department !== state.dashFilterDept) return false;
+    if(state.dashFilterName && !e.name.toLowerCase().includes(state.dashFilterName.trim().toLowerCase())) return false;
+    return true;
+  });
+
+  for(const e of list){ await loadProgress(e.id); }
+
+  const totalEmp = list.length;
+  const lulusCount = list.filter(e=>computeStats(e.id,e.department).finalStatus==='Lulus Probation').length;
+  const berjalanCount = totalEmp - lulusCount;
+
+  const outletGroups = {};
+  list.forEach(e=>{ (outletGroups[e.outlet] = outletGroups[e.outlet]||[]).push(e); });
+  const outletStats = Object.keys(outletGroups).map(o=>{
+    const emps = outletGroups[o];
+    let sumPct = 0, lulus = 0;
+    emps.forEach(e=>{
+      const st = computeStats(e.id, e.department);
+      sumPct += st.overallPct;
+      if(st.finalStatus==='Lulus Probation') lulus++;
+    });
+    return { outlet:o, avgPct: emps.length ? Math.round(sumPct/emps.length) : 0, total: emps.length, lulus };
+  }).sort((a,b)=> a.avgPct - b.avgPct || a.outlet.localeCompare(b.outlet));
+
+  if(outletStats.length){
+    html += `<div class="tt-card">
+      <span class="tt-label">Penyelesaian Probation per Outlet</span>
+      <div class="tt-outlet-stats">
+        ${outletStats.map(os=>{
+          const fillColor = os.avgPct < 40 ? 'var(--terracotta)' : os.avgPct >= 100 ? 'var(--teal-2)' : 'var(--brass)';
+          return `<div class="tt-outlet-row">
+          <div class="tt-outlet-row-top"><span>${esc(os.outlet)}</span><span style="color:${fillColor}">${os.avgPct}%</span></div>
+          <div class="tt-outlet-track"><div class="tt-outlet-fill" style="width:${os.avgPct}%; background:${fillColor};"></div></div>
+          <div class="tt-outlet-meta">${os.lulus} pembelajaran selesai &middot; ${os.total} karyawan</div>
+        </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+
+  html += `<div class="tt-summary-cards">
+    <div class="tt-sumcard"><div class="tt-sumnum">${totalEmp}</div><div class="tt-sumlabel">Karyawan</div></div>
+    <div class="tt-sumcard"><div class="tt-sumnum">${lulusCount}</div><div class="tt-sumlabel">Pembelajaran Selesai</div></div>
+    <div class="tt-sumcard"><div class="tt-sumnum">${berjalanCount}</div><div class="tt-sumlabel">Masih Berjalan</div></div>
+  </div>`;
+
+  if(list.length === 0){
+    html += `<div class="tt-empty">Belum ada data karyawan${(state.dashFilterOutlet||state.dashFilterDept||state.dashFilterName)?' untuk filter ini':''}.<br>Mulai isi dari tab "Isi Checklist".</div>`;
+  } else {
+    html += `<div class="tt-card" style="padding:0; overflow-x:auto;">
+      <table class="tt-table">
+        <thead><tr>
+          <th>Karyawan</th><th>Outlet</th><th>Dept</th><th>B1</th><th>B2</th><th>B3</th><th>Total</th><th>Tahap Saat Ini</th><th>Status</th><th>Validasi</th>
+        </tr></thead>
+        <tbody>`;
+    list.forEach(e=>{
+      const st = computeStats(e.id, e.department);
+      const badge = st.finalStatus==='Lulus Probation' ? '<span class="tt-badge lulus">Lulus</span>'
+                  : st.finalStatus==='Tidak Lulus' ? '<span class="tt-badge tidak">Tidak Lulus</span>'
+                  : st.finalStatus==='Perlu Tambahan Waktu' ? '<span class="tt-badge tambahan">Tambahan Waktu</span>'
+                  : '<span class="tt-badge jalan">Berjalan</span>';
+      const verdict = computeValidasiVerdict(e.id, e.department);
+      const valBadge = verdict==='Valid' ? '<span class="tt-badge lulus">Valid</span>'
+                      : verdict==='Tidak Valid' ? '<span class="tt-badge tidak">Tidak Valid</span>'
+                      : '<span class="tt-badge tambahan">Proses Validasi</span>';
+      const pctCell = (b)=>{
+        const bs = st.byBulan[b]; const p = bs.total?Math.round(bs.done/bs.total*100):0;
+        return `<div class="tt-bar-cell"><div class="tt-bar-track"><div class="tt-bar-fill" style="width:${p}%"></div></div><span>${p}%</span></div>`;
+      };
+      html += `<tr data-emp="${e.id}">
+        <td style="font-weight:600">${esc(e.name)}</td>
+        <td>${esc(e.outlet)}</td>
+        <td>${state.depts[e.department].label}</td>
+        <td>${pctCell(1)}</td><td>${pctCell(2)}</td><td>${pctCell(3)}</td>
+        <td style="font-weight:700">${st.overallPct}%</td>
+        <td style="white-space:nowrap;">${esc(currentStageLabel(st))}</td>
+        <td>${badge}</td>
+        <td>${valBadge}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+
+  root.innerHTML = html;
+  bindDashboardFilterEvents();
+
+  document.querySelectorAll('#ttBody tr[data-emp]').forEach(row=>{
+    row.addEventListener('click', ()=>{ state.dashDetailId = row.dataset.emp; renderDashboard(); });
+  });
+}
+
+function bindDashboardFilterEvents(){
+  const fn = document.getElementById('filterName');
+  if(fn){
+    fn.addEventListener('input', ()=>{
+      state.dashFilterName = fn.value;
+      state.dashFiltersTouched = true;
+      const cursorPos = fn.selectionStart;
+      renderDashboard().then(()=>{
+        const newFn = document.getElementById('filterName');
+        if(newFn){ newFn.focus(); newFn.setSelectionRange(cursorPos, cursorPos); }
+      });
+    });
+  }
+  const fo = document.getElementById('filterOutlet');
+  if(fo) fo.addEventListener('change', ()=>{ state.dashFilterOutlet = fo.value; state.dashFiltersTouched = true; renderDashboard(); });
+  const fd = document.getElementById('filterDept');
+  if(fd) fd.addEventListener('change', ()=>{ state.dashFilterDept = fd.value; state.dashFiltersTouched = true; renderDashboard(); });
+}
+
+async function renderDashboardDetail(){
+  const emp = state.employees.find(e=>e.id===state.dashDetailId);
+  if(!emp){ state.dashDetailId=null; renderDashboard(); return; }
+  await loadProgress(emp.id);
+  const items = deptItemsFor(emp.department);
+  const prog = state.progress[emp.id] || {};
+  const stats = computeStats(emp.id, emp.department);
+
+  let html = `<div class="tt-back" id="backToList">&larr; Kembali ke daftar</div>`;
+  html += `<div class="tt-card">
+    <div style="font-weight:700; font-size:17px; font-family:'Fraunces',serif; color:var(--teal)">${esc(emp.name)}</div>
+    <div style="font-size:12.5px; color:var(--sage); margin-top:2px">${esc(emp.outlet)} &middot; ${state.depts[emp.department].label} &middot; Mulai ${emp.startDate||'-'}</div>
+    <div style="font-size:12.5px; margin-top:6px; font-weight:600; color:var(--teal)">Progres keseluruhan: ${stats.overallPct}%</div>
+  </div>`;
+
+  [1,2,3].forEach(bulan=>{
+    const bulanItems = items.filter(it=>it.bulan===bulan);
+    html += `<div class="tt-card">
+      <div style="font-weight:700; font-size:14px; color:var(--teal); margin-bottom:8px; border-bottom:2px solid var(--brass); padding-bottom:6px;">Bulan ${bulan} — ${BULAN_TITLE[bulan]}</div>`;
+    let lastKat = null;
+    bulanItems.forEach(it=>{
+      if(it.kat!==lastKat){ html += `<div class="tt-kategori">${esc(it.kat)}</div>`; lastKat = it.kat; }
+      const v = prog['item_'+it.no] || {};
+      const badgeClass = v.status==='Sudah Dikuasai' || v.status==='Lulus Probation' ? 'lulus'
+                        : v.status==='Tidak Lulus' ? 'tidak'
+                        : v.status ? 'tambahan' : 'jalan';
+      html += `<div style="display:flex; justify-content:space-between; gap:10px; padding:8px 0; border-bottom:1px dashed var(--line); font-size:12.5px;">
+        <div style="flex:1">${esc(it.point)}${v.note?`<div style="color:var(--sage); font-size:11.5px; margin-top:2px;">Catatan: ${esc(v.note)}</div>`:''}</div>
+        <div style="text-align:right; white-space:nowrap;">
+          <span class="tt-badge ${badgeClass}">${esc(statusLabel(v.status)||'Belum Diajarkan')}</span>
+          <div style="font-size:10.5px; color:var(--sage); margin-top:3px;">${v.date||''} ${v.paraf?('&middot; '+esc(v.paraf)):''}</div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  root.innerHTML = html;
+  document.getElementById('backToList').addEventListener('click', ()=>{ state.dashDetailId=null; renderDashboard(); });
+}
+
+// ---------- ADMIN TAB ----------
+function renderAdmin(){
+  const deptKey = state.adminDept;
+  const dept = state.depts[deptKey];
+
+  let html = `<div class="tt-admin-warn" style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+    <span>Perubahan di sini langsung berlaku untuk semua leader (tersimpan otomatis) dan tidak menghapus data checklist karyawan yang sudah pernah diisi — kecuali kamu hapus poinnya sendiri.</span>
+    <button class="tt-icon-btn" id="adminLockBtn" style="flex-shrink:0;">Kunci</button>
+  </div>`;
+
+  html += `<div class="tt-card">
+    <span class="tt-label">Backup / Export Data</span>
+    <div style="font-size:12px; color:var(--sage); margin-top:2px; margin-bottom:8px;">Simpan cadangan data secara berkala, terpisah dari Google Sheet.</div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="tt-btn tt-btn-ghost" id="exportJsonBtn">Export Backup Lengkap (JSON)</button>
+      <button class="tt-btn tt-btn-ghost" id="exportCsvBtn">Export Ringkasan Karyawan (CSV)</button>
+    </div>
+  </div>`;
+
+  html += `<div class="tt-card">
+    <span class="tt-label">Panduan Penggunaan (tampil di tab "Panduan")</span>
+    <textarea id="panduanTextarea" class="tt-input" rows="6" style="width:100%; resize:vertical; font-family:inherit; margin-top:6px;">${esc(state.panduanText)}</textarea>
+    <div style="margin-top:8px;">
+      <button class="tt-btn tt-btn-brass" id="savePanduanBtn">Simpan Panduan</button>
+    </div>
+  </div>`;
+
+  html += `<div class="tt-card">
+    <span class="tt-label">Akun Leader Terdaftar</span>
+    <div style="font-size:11.5px; color:var(--sage); margin-bottom:8px;">Leader mendaftar sendiri lewat halaman login. Hapus akun di sini kalau leader resign atau perlu daftar ulang (misal lupa password).</div>
+    <div class="tt-chip-list">
+      ${state.leaderAccounts.map(a=>`<div class="tt-chip">${esc(a.name)} &middot; ${esc(a.email)}<button data-delleaderacc="${esc(a.email)}" title="Hapus akun">&times;</button></div>`).join('') || '<div style="font-size:12.5px; color:var(--sage);">Belum ada leader yang mendaftar.</div>'}
+    </div>
+  </div>`;
+
+  html += `<div class="tt-card">
+    <span class="tt-label">Outlet</span>
+    <div class="tt-chip-list">
+      ${state.outlets.map(o=>`<div class="tt-chip">${esc(o)}<button data-deloutlet="${esc(o)}" title="Hapus">&times;</button></div>`).join('') || '<div style="font-size:12.5px; color:var(--sage);">Belum ada outlet.</div>'}
+    </div>
+    <div class="tt-inline-add">
+      <input type="text" id="newOutletInput" class="tt-input" placeholder="Nama outlet baru">
+      <button class="tt-btn tt-btn-brass" id="addOutletBtn">+ Tambah</button>
+    </div>
+  </div>`;
+
+  html += `<div class="tt-card">
+    <span class="tt-label">Akun Validator Terdaftar</span>
+    <div style="font-size:11.5px; color:var(--sage); margin-bottom:8px;">Validator mendaftar sendiri lewat halaman login (pilih peran "Validator"). Hapus akun di sini kalau perlu daftar ulang.</div>
+    <div class="tt-chip-list">
+      ${state.validatorAccounts.map(a=>`<div class="tt-chip">${esc(a.name)} &middot; ${esc(a.email)}<button data-delvalidatoracc="${esc(a.email)}" title="Hapus akun">&times;</button></div>`).join('') || '<div style="font-size:12.5px; color:var(--sage);">Belum ada validator yang mendaftar.</div>'}
+    </div>
+  </div>`;
+
+  html += `<div class="tt-card">
+    <span class="tt-label">Ganti PIN Admin</span>
+    <div class="tt-inline-add">
+      <input type="text" inputmode="numeric" id="newPinInput" class="tt-input" placeholder="PIN baru">
+      <button class="tt-btn tt-btn-ghost" id="savePinBtn">Simpan</button>
+    </div>
+  </div>`;
+
+  html += `<div class="tt-card">
+    <span class="tt-label">Departemen</span>
+    <div class="tt-dept-grid">
+      ${Object.keys(state.depts).map(k=>`<div class="tt-dept-btn ${deptKey===k?'active':''}" data-admindept="${k}">${state.depts[k].label}</div>`).join('')}
+    </div>
+  </div>`;
+
+  [1,2,3].forEach(bulan=>{
+    const items = dept.items.filter(it=>it.bulan===bulan).sort((a,b)=>a.no-b.no);
+    html += `<div class="tt-card">
+      <div style="font-weight:700; font-size:14px; color:var(--teal); margin-bottom:8px; border-bottom:2px solid var(--brass); padding-bottom:6px;">Bulan ${bulan} — ${BULAN_TITLE[bulan]}</div>`;
+
+    items.forEach(it=>{
+      if(state.adminEditingNo === it.no){
+        html += renderAdminEditForm(deptKey, it);
+      } else {
+        html += `<div class="tt-admin-item">
+          <div class="tt-admin-item-text">
+            <div class="tt-admin-item-meta">${esc(it.kode)} &middot; ${esc(it.kat)}${it.final?' &middot; Item Kesimpulan Akhir':''}</div>
+            <div class="tt-admin-item-point">${esc(it.point)}</div>
+          </div>
+          <div class="tt-admin-actions">
+            <button class="tt-icon-btn" data-editno="${it.no}">Edit</button>
+            ${state.adminConfirmDeleteNo===it.no
+              ? `<button class="tt-icon-btn confirm" data-confirmdelno="${it.no}">Yakin hapus?</button><button class="tt-icon-btn" data-canceldelno="${it.no}">Batal</button>`
+              : `<button class="tt-icon-btn danger" data-delno="${it.no}">Hapus</button>`}
+          </div>
+        </div>`;
+      }
+    });
+
+    if(state.adminAdding === bulan){
+      html += renderAdminAddForm(deptKey, bulan);
+    } else {
+      html += `<button class="tt-btn tt-btn-ghost" data-addbulan="${bulan}" style="width:100%; margin-top:4px;">+ Tambah Poin di Bulan ${bulan}</button>`;
+    }
+
+    html += `</div>`;
+  });
+
+  root.innerHTML = html;
+  bindAdminEvents(deptKey);
+}
+
+function renderAdminEditForm(deptKey, it){
+  return `<div class="tt-admin-item tt-admin-add-card">
+    <div class="tt-admin-edit-form">
+      <div class="tt-field"><span class="tt-label">Kode</span><input type="text" class="tt-input adm-kode" value="${esc(it.kode)}"></div>
+      <div class="tt-field"><span class="tt-label">Kategori / Kompetensi</span><input type="text" class="tt-input adm-kat" value="${esc(it.kat)}"></div>
+      <div class="tt-field"><span class="tt-label">Bulan</span>
+        <select class="tt-input adm-bulan">
+          ${[1,2,3].map(b=>`<option value="${b}" ${it.bulan===b?'selected':''}>Bulan ${b}</option>`).join('')}
+        </select>
+      </div>
+      <div class="tt-field"><span class="tt-label">Poin yang Harus Diajarkan / Dicek</span><input type="text" class="tt-input adm-point" value="${esc(it.point)}"></div>
+      <div class="tt-field" style="display:flex; align-items:center; gap:7px;">
+        <input type="checkbox" class="adm-final" id="admFinal${it.no}" ${it.final?'checked':''} style="width:auto;">
+        <label for="admFinal${it.no}" style="font-size:12.5px;">Ini item Kesimpulan Akhir (pilihan Lulus / Perlu Tambahan Waktu / Tidak Lulus)</label>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="tt-btn tt-btn-primary" data-savenno="${it.no}">Simpan</button>
+        <button class="tt-btn tt-btn-ghost" data-canceleditno="${it.no}">Batal</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderAdminAddForm(deptKey, bulan){
+  return `<div class="tt-admin-item tt-admin-add-card">
+    <div class="tt-admin-edit-form">
+      <div class="tt-field"><span class="tt-label">Kode</span><input type="text" class="tt-input add-kode" placeholder="Contoh: A9"></div>
+      <div class="tt-field"><span class="tt-label">Kategori / Kompetensi</span><input type="text" class="tt-input add-kat" placeholder="Contoh: Kebersihan Area Kerja"></div>
+      <div class="tt-field"><span class="tt-label">Poin yang Harus Diajarkan / Dicek</span><input type="text" class="tt-input add-point" placeholder="Tulis indikatornya di sini"></div>
+      <div class="tt-field" style="display:flex; align-items:center; gap:7px;">
+        <input type="checkbox" class="add-final" id="addFinal${bulan}" style="width:auto;">
+        <label for="addFinal${bulan}" style="font-size:12.5px;">Ini item Kesimpulan Akhir</label>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="tt-btn tt-btn-primary" data-saveaddbulan="${bulan}">Tambah Poin</button>
+        <button class="tt-btn tt-btn-ghost" data-canceladdbulan="${bulan}">Batal</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function bindAdminEvents(deptKey){
+  const lockBtn = document.getElementById('adminLockBtn');
+  if(lockBtn) lockBtn.addEventListener('click', ()=>{ state.adminUnlocked = false; render(); });
+
+  const savePanduanBtn = document.getElementById('savePanduanBtn');
+  if(savePanduanBtn) savePanduanBtn.addEventListener('click', async ()=>{
+    const ta = document.getElementById('panduanTextarea');
+    state.panduanText = ta.value;
+    await savePanduan();
+    showToast('Panduan disimpan');
+  });
+
+  const exportJsonBtn = document.getElementById('exportJsonBtn');
+  if(exportJsonBtn) exportJsonBtn.addEventListener('click', async ()=>{
+    exportJsonBtn.disabled = true; exportJsonBtn.textContent = 'Menyiapkan...';
+    try{ await exportBackupJson(); showToast('Backup diunduh'); }
+    catch(e){ console.error(e); showToast('Gagal export'); }
+    finally{ exportJsonBtn.disabled = false; exportJsonBtn.textContent = 'Export Backup Lengkap (JSON)'; }
+  });
+
+  const exportCsvBtn = document.getElementById('exportCsvBtn');
+  if(exportCsvBtn) exportCsvBtn.addEventListener('click', async ()=>{
+    exportCsvBtn.disabled = true; exportCsvBtn.textContent = 'Menyiapkan...';
+    try{ await exportSummaryCsv(); showToast('Ringkasan CSV diunduh'); }
+    catch(e){ console.error(e); showToast('Gagal export'); }
+    finally{ exportCsvBtn.disabled = false; exportCsvBtn.textContent = 'Export Ringkasan Karyawan (CSV)'; }
+  });
+
+  document.querySelectorAll('[data-delleaderacc]').forEach(b=>{
+    b.addEventListener('click', async ()=>{
+      const email = b.dataset.delleaderacc;
+      if(!confirm('Hapus akun ini? Leader harus daftar ulang untuk bisa login lagi.')) return;
+      state.leaderAccounts = state.leaderAccounts.filter(a=>a.email!==email);
+      await saveLeaderAccounts();
+      renderAdmin();
+      showToast('Akun leader dihapus');
+    });
+  });
+
+  const addOutletBtn = document.getElementById('addOutletBtn');
+  if(addOutletBtn) addOutletBtn.addEventListener('click', async ()=>{
+    const input = document.getElementById('newOutletInput');
+    const name = input.value.trim();
+    if(!name){ showToast('Nama outlet wajib diisi'); return; }
+    if(state.outlets.includes(name)){ showToast('Outlet sudah ada'); return; }
+    state.outlets.push(name);
+    await saveOutlets();
+    renderAdmin();
+    showToast('Outlet ditambahkan');
+  });
+  document.querySelectorAll('[data-deloutlet]').forEach(b=>{
+    b.addEventListener('click', async ()=>{
+      state.outlets = state.outlets.filter(o=>o!==b.dataset.deloutlet);
+      await saveOutlets();
+      renderAdmin();
+      showToast('Outlet dihapus');
+    });
+  });
+
+  document.querySelectorAll('[data-delvalidatoracc]').forEach(b=>{
+    b.addEventListener('click', async ()=>{
+      const email = b.dataset.delvalidatoracc;
+      if(!confirm('Hapus akun validator ini? Validator harus daftar ulang untuk bisa login lagi.')) return;
+      state.validatorAccounts = state.validatorAccounts.filter(a=>a.email!==email);
+      await saveValidatorAccounts();
+      renderAdmin();
+      showToast('Akun validator dihapus');
+    });
+  });
+
+  const savePinBtn = document.getElementById('savePinBtn');
+  if(savePinBtn) savePinBtn.addEventListener('click', async ()=>{
+    const input = document.getElementById('newPinInput');
+    const pin = input.value.trim();
+    if(!pin){ showToast('PIN wajib diisi'); return; }
+    state.adminPin = pin;
+    await saveAdminPin();
+    input.value = '';
+    showToast('PIN admin diperbarui');
+  });
+
+  document.querySelectorAll('[data-admindept]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      state.adminDept = b.dataset.admindept;
+      state.adminEditingNo = null; state.adminAdding = false; state.adminConfirmDeleteNo = null;
+      renderAdmin();
+    });
+  });
+
+  document.querySelectorAll('[data-editno]').forEach(b=>{
+    b.addEventListener('click', ()=>{ state.adminEditingNo = Number(b.dataset.editno); state.adminAdding=false; renderAdmin(); });
+  });
+  document.querySelectorAll('[data-canceleditno]').forEach(b=>{
+    b.addEventListener('click', ()=>{ state.adminEditingNo = null; renderAdmin(); });
+  });
+  document.querySelectorAll('[data-savenno]').forEach(b=>{
+    b.addEventListener('click', async ()=>{
+      const no = Number(b.dataset.savenno);
+      const form = b.closest('.tt-admin-edit-form');
+      const dept = state.depts[deptKey];
+      const it = dept.items.find(x=>x.no===no);
+      it.kode = form.querySelector('.adm-kode').value.trim();
+      it.kat = form.querySelector('.adm-kat').value.trim();
+      it.bulan = Number(form.querySelector('.adm-bulan').value);
+      it.point = form.querySelector('.adm-point').value.trim();
+      it.final = form.querySelector('.adm-final').checked;
+      await saveDepts();
+      state.adminEditingNo = null;
+      renderAdmin();
+      showToast('Poin diperbarui');
+    });
+  });
+
+  document.querySelectorAll('[data-delno]').forEach(b=>{
+    b.addEventListener('click', ()=>{ state.adminConfirmDeleteNo = Number(b.dataset.delno); renderAdmin(); });
+  });
+  document.querySelectorAll('[data-canceldelno]').forEach(b=>{
+    b.addEventListener('click', ()=>{ state.adminConfirmDeleteNo = null; renderAdmin(); });
+  });
+  document.querySelectorAll('[data-confirmdelno]').forEach(b=>{
+    b.addEventListener('click', async ()=>{
+      const no = Number(b.dataset.confirmdelno);
+      const dept = state.depts[deptKey];
+      dept.items = dept.items.filter(x=>x.no!==no);
+      await saveDepts();
+      state.adminConfirmDeleteNo = null;
+      renderAdmin();
+      showToast('Poin dihapus');
+    });
+  });
+
+  document.querySelectorAll('[data-addbulan]').forEach(b=>{
+    b.addEventListener('click', ()=>{ state.adminAdding = Number(b.dataset.addbulan); state.adminEditingNo=null; renderAdmin(); });
+  });
+  document.querySelectorAll('[data-canceladdbulan]').forEach(b=>{
+    b.addEventListener('click', ()=>{ state.adminAdding = false; renderAdmin(); });
+  });
+  document.querySelectorAll('[data-saveaddbulan]').forEach(b=>{
+    b.addEventListener('click', async ()=>{
+      const bulan = Number(b.dataset.saveaddbulan);
+      const form = b.closest('.tt-admin-edit-form');
+      const point = form.querySelector('.add-point').value.trim();
+      if(!point){ showToast('Poin wajib diisi'); return; }
+      const kode = form.querySelector('.add-kode').value.trim() || '-';
+      const kat = form.querySelector('.add-kat').value.trim() || '-';
+      const final = form.querySelector('.add-final').checked;
+      const dept = state.depts[deptKey];
+      const newNo = dept.nextNo || (dept.items.reduce((m,it)=>Math.max(m,it.no),0)+1);
+      dept.items.push({ no:newNo, bulan, kode, kat, point, final });
+      dept.nextNo = newNo + 1;
+      await saveDepts();
+      state.adminAdding = false;
+      renderAdmin();
+      showToast('Poin ditambahkan');
+    });
+  });
+}
+
+// ---------- INIT ----------
+loadAll();
+
+})();
+</script>
