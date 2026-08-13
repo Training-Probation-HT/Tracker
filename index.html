@@ -7,13 +7,13 @@
     --cream:#FFFFFF;
     --cream-2:#F8ECE8;
     --teal:#9C3320;
-    --teal-2:#3E7D53;
-    --brass:#C98A3E;
-    --brass-l:#F1D19B;
+    --teal-2:#7A2323;
+    --brass:#E8B0A6;
+    --brass-l:#F0D6D0;
     --terracotta:#5C1710;
     --sage:#8A6A62;
     --card:#FFFFFF;
-    --line:#EAD9D4;
+    --line:#D9B3A6;
     font-family:'Work Sans',system-ui,sans-serif;
   }
   *{box-sizing:border-box;}
@@ -105,11 +105,11 @@
   .tt-body{ padding:18px 16px 10px; }
   .tt-card{
     background:var(--card);
-    border:1px solid var(--line);
+    border:1.5px solid var(--line);
     border-radius:12px;
     padding:16px;
     margin-bottom:14px;
-    box-shadow:0 1px 0 rgba(27,46,40,0.03);
+    box-shadow:0 2px 8px rgba(156,51,32,0.06);
   }
   .tt-label{
     font-size:11px;
@@ -136,7 +136,7 @@
   textarea{ resize:vertical; min-height:64px; line-height:1.4; }
   input:focus, select:focus, textarea:focus, .tt-input:focus{
     border-color:var(--brass);
-    box-shadow:0 0 0 3px rgba(180,132,45,0.15);
+    box-shadow:0 0 0 3px rgba(156,51,32,0.15);
   }
   .tt-btn{
     padding:10px 16px;
@@ -176,22 +176,26 @@
   .tt-bulan-block{ margin-bottom:18px; }
   .tt-bulan-head{
     display:flex;
-    align-items:center;
-    gap:10px;
+    flex-direction:column;
+    gap:8px;
     cursor:pointer;
-    padding:10px 4px;
-    border-bottom:2px solid var(--brass);
+    padding:12px 14px;
+    background:var(--cream-2);
+    border-left:4px solid var(--teal);
+    border-radius:8px;
     margin-bottom:10px;
   }
+  .tt-bulan-head-top{ display:flex; align-items:center; gap:9px; }
   .tt-bulan-num{
-    font-family:'Fraunces',serif;
-    font-size:22px;
-    font-weight:700;
-    color:var(--brass);
-    width:34px;
+    color:var(--teal);
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
   }
-  .tt-bulan-title{ font-weight:700; font-size:15px; color:var(--teal); flex:1; }
-  .tt-bulan-pct{ font-size:12.5px; font-weight:600; color:var(--sage); }
+  .tt-bulan-title{ font-weight:700; font-size:14.5px; color:var(--teal); flex:1; }
+  .tt-bulan-pct{ font-size:12.5px; font-weight:700; color:var(--teal); white-space:nowrap; }
+  .tt-bulan-progress-track{ width:100%; height:6px; background:#fff; border-radius:5px; overflow:hidden; }
+  .tt-bulan-progress-fill{ height:100%; background:var(--teal); border-radius:5px; }
   .tt-chevron{ transition:transform .2s ease; color:var(--sage); }
   .tt-chevron.open{ transform:rotate(180deg); }
   .tt-kategori{
@@ -212,8 +216,22 @@
     background:#fff;
     position:relative;
   }
-  .tt-item.done{ border-color:var(--teal-2); background:#F4FAF7; }
-  .tt-item-point{ font-size:13.5px; line-height:1.4; margin-bottom:10px; padding-right:60px; }
+  .tt-item.done{ border-color:var(--teal-2); background:var(--cream-2); }
+  .tt-item-row{ display:flex; gap:11px; align-items:flex-start; }
+  .tt-item-num{
+    width:26px; height:26px; border-radius:50%;
+    background:var(--cream-2); color:var(--teal);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:12.5px; flex-shrink:0; margin-top:1px;
+  }
+  .tt-item.done .tt-item-num{ background:var(--teal-2); color:#fff; }
+  .tt-item-body{ flex:1; min-width:0; }
+  .tt-item-kode{
+    display:inline-block; font-size:10.5px; font-weight:700;
+    background:var(--brass-l); color:var(--teal);
+    padding:2px 10px; border-radius:12px; margin-bottom:10px;
+  }
+  .tt-item-point{ font-size:13.5px; line-height:1.4; margin-bottom:8px; padding-right:60px; }
   .tt-stamp{
     position:absolute;
     top:10px; right:10px;
@@ -226,7 +244,7 @@
     padding:3px 6px;
     transform:rotate(-6deg);
     text-transform:uppercase;
-    background:rgba(30,82,72,0.06);
+    background:rgba(156,51,32,0.08);
   }
   .tt-status-pills{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
   .tt-pill{
@@ -241,15 +259,15 @@
     white-space:nowrap;
   }
   .tt-pill[data-val="Belum Diajarkan"].sel{ background:#EDEDED; border-color:#9A9A9A; }
-  .tt-pill[data-val="Sedang Diajarkan"].sel{ background:var(--brass-l); border-color:var(--brass); color:#5A3E0B; }
+  .tt-pill[data-val="Sedang Diajarkan"].sel{ background:var(--brass-l); border-color:var(--brass); color:var(--teal); }
   .tt-pill[data-val="Sudah Dikuasai"].sel{ background:var(--teal-2); border-color:var(--teal-2); color:#fff; }
   .tt-pill[data-val="Lulus Probation"].sel{ background:var(--teal-2); border-color:var(--teal-2); color:#fff; }
-  .tt-pill[data-val="Perlu Tambahan Waktu"].sel{ background:var(--brass-l); border-color:var(--brass); color:#5A3E0B; }
+  .tt-pill[data-val="Perlu Tambahan Waktu"].sel{ background:var(--brass-l); border-color:var(--brass); color:var(--teal); }
   .tt-pill[data-val="Tidak Lulus"].sel{ background:var(--terracotta); border-color:var(--terracotta); color:#fff; }
   .tt-item-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
   .tt-item-grid input{ font-size:12.5px; padding:8px 9px; }
   .tt-item-note{ grid-column:1/-1; }
-  .tt-final-item{ border-color:var(--brass); background:#FFFBF0; }
+  .tt-final-item{ border-color:var(--brass); background:var(--cream-2); }
   .tt-empty{
     text-align:center; padding:30px 14px; color:var(--sage); font-size:13.5px;
   }
@@ -265,10 +283,11 @@
   .tt-badge{
     font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:20px; white-space:nowrap;
   }
-  .tt-badge.lulus{ background:var(--teal-2); color:#fff; }
-  .tt-badge.tambahan{ background:var(--brass-l); color:#5A3E0B; }
+  .tt-badge.lulus{ background:#3E7D53; color:#fff; }
+  .tt-badge.tambahan{ background:#F1D19B; color:#5A3E0B; }
   .tt-badge.tidak{ background:var(--terracotta); color:#fff; }
   .tt-badge.jalan{ background:#EDEDED; color:#555; }
+  .tt-badge.warn{ background:#fff; color:var(--terracotta); border:1.5px dashed var(--terracotta); }
   .tt-bar-cell{ display:flex; align-items:center; gap:6px; }
   .tt-bar-track{ width:52px; height:7px; background:var(--line); border-radius:4px; overflow:hidden; }
   .tt-bar-fill{ height:100%; background:var(--teal-2); }
@@ -322,9 +341,9 @@
   .tt-icon-btn.confirm{ background:var(--terracotta); color:#fff; border-color:var(--terracotta); }
   .tt-admin-edit-form{ width:100%; }
   .tt-admin-edit-form .tt-field{ margin-bottom:8px; }
-  .tt-admin-add-card{ border:1.5px dashed var(--brass); background:#FFFBF0; }
+  .tt-admin-add-card{ border:1.5px dashed var(--brass); background:var(--cream-2); }
   .tt-admin-warn{
-    font-size:12px; color:#7A5A12; background:#FFF3D6; border:1px solid var(--brass-l);
+    font-size:12px; color:var(--teal); background:var(--cream-2); border:1px solid var(--brass-l);
     padding:9px 11px; border-radius:8px; margin-bottom:14px; line-height:1.5;
   }
   select.tt-input{ appearance:auto; }
@@ -384,14 +403,19 @@
 
   /* Laptop/desktop: a bit more breathing room, slightly larger type */
   @media (min-width:1024px){
-    body{ padding:44px 20px; }
-    .tt-root{ max-width:960px; }
+    body{ padding:36px 24px; }
+    .tt-root{ max-width:1180px; }
     .tt-header{ padding:34px 44px 26px; }
     .tt-body{ padding:28px 40px 20px; }
     .tt-title{ font-size:30px; }
     .tt-sub{ font-size:14px; }
     .tt-card{ padding:20px; }
     .tt-item-grid{ grid-template-columns:repeat(4,1fr); }
+  }
+
+  /* Layar besar (monitor/laptop lebar): kasih ruang lebih lagi, terutama buat tabel Dashboard */
+  @media (min-width:1440px){
+    .tt-root{ max-width:1400px; }
   }
 
   /* Small phones: tighten up further */
@@ -554,8 +578,13 @@ const DEFAULT_DEPTS = {
 
 const STATUS_OPTS = ["Belum Diajarkan","Sedang Diajarkan","Sudah Dikuasai"];
 const FINAL_OPTS = ["Lulus Probation","Perlu Tambahan Waktu","Tidak Lulus"];
-// Label tampilan (nilai data tetap "Lulus Probation" di balik layar, biar data lama tidak rusak)
-const STATUS_LABELS = { "Lulus Probation": "Pembelajaran Selesai" };
+// Label tampilan (nilai data tetap nama lengkap di balik layar, biar data lama tidak rusak)
+const STATUS_LABELS = {
+  "Lulus Probation": "Pembelajaran Selesai",
+  "Belum Diajarkan": "Belum",
+  "Sedang Diajarkan": "Proses",
+  "Sudah Dikuasai": "Selesai"
+};
 function statusLabel(v){ return STATUS_LABELS[v] || v; }
 const BULAN_TITLE = {1:"Kompetensi Dasar",2:"Produksi / SOP Sesuai Standar",3:"Review Keseluruhan"};
 
@@ -602,6 +631,7 @@ let state = {
   loaded: false,
   depts: null,          // config checklist aktif (bisa diedit dari tab Admin)
   leaderAccounts: [],    // akun leader terdaftar: {email, name, passwordHash, createdAt}
+  elearning: {},         // map nama (dinormalisasi) -> {b1,b2,b3,pct} dari spreadsheet e-learning (read-only)
   validatorAccounts: [], // akun validator terdaftar: {email, name, passwordHash, createdAt}
   session: null,         // {email, name, role: 'leader'|'validator'}
   authView: "login",     // "login" | "signup"
@@ -642,7 +672,7 @@ async function kvFetchAll(){
   const res = await fetch(TRACKER_API_URL);
   const json = await res.json();
   if(!json.ok) throw new Error(json.error || 'Gagal memuat data');
-  return json.data || {};
+  return { data: json.data || {}, elearning: json.elearning || {} };
 }
 
 async function kvSet(key, value){
@@ -681,8 +711,11 @@ function showToast(msg){
 // ---------- STORAGE ----------
 async function loadAll(){
   let kvData = {};
+  state.elearning = {};
   try{
-    kvData = await kvFetchAll();
+    const fetched = await kvFetchAll();
+    kvData = fetched.data;
+    state.elearning = fetched.elearning;
   }catch(e){
     console.error('Gagal memuat data dari server:', e);
     state.loadError = true;
@@ -1037,9 +1070,84 @@ function isBulanComplete(stats, bulan){
   const bs = stats.byBulan[bulan];
   return bs.total > 0 && bs.done === bs.total;
 }
+
+// ---------- LULUS PROBATION (gabungan E-Learning + Tracker) ----------
+// Nama dinormalisasi (trim + huruf kecil + spasi dirapikan) biar "Nisa"/"nisa" ketemu.
+// Typo beda ejaan (mis. "Fathiya" vs "Fathiyaa") TETAP tidak ketemu — itu perlu
+// dibenarkan manual supaya salah satu sisi datanya konsisten.
+function normalizeNama(s){
+  return String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
+}
+
+function getTeoriInfo(empName){
+  const info = state.elearning[normalizeNama(empName)];
+  return info || null; // null = data e-learning karyawan ini tidak ditemukan
+}
+
+// Bulan dianggap "lulus praktik" (dapat bobot 33.33%) HANYA kalau ketiganya terpenuhi:
+// 1) semua poin non-final di bulan itu sudah "Sudah Dikuasai" oleh leader
+// 2) validator sudah submit validasi bulan itu
+// 3) SEMUA poin yang dinilai validator berstatus "Valid" (tidak ada yang "Tidak Valid"/belum dinilai)
+function praktikBulanLulus(empId, deptKey, bulan){
+  const items = deptItemsFor(deptKey).filter(it=>it.bulan===bulan && !it.final);
+  if(items.length === 0) return false;
+  const prog = state.progress[empId] || {};
+  const allDone = items.every(it=>(prog['item_'+it.no]||{}).status === 'Sudah Dikuasai');
+  if(!allDone) return false;
+  const vv = prog['validasi_bulan'+bulan] || {};
+  if(!vv.submitted) return false;
+  return items.every(it=>{
+    const vi = prog['val_item_'+it.no];
+    return vi && vi.valid === 'Valid';
+  });
+}
+
+function computePraktikPct(empId, deptKey){
+  let lulusCount = 0;
+  [1,2,3].forEach(b=>{ if(praktikBulanLulus(empId, deptKey, b)) lulusCount++; });
+  return Math.round((lulusCount/3)*100);
+}
+
+// Deadline probation = tanggal mulai kerja + 3 bulan + 1 minggu.
+function calcProbationDeadline(startDateStr){
+  if(!startDateStr) return null;
+  const d = new Date(startDateStr+'T00:00:00');
+  if(isNaN(d.getTime())) return null;
+  d.setMonth(d.getMonth()+3);
+  d.setDate(d.getDate()+7);
+  return d;
+}
+
+// Status akhir probation, gabungan teori (e-learning) + praktik (Tracker) + deadline.
+// Pilihan manual "Kesimpulan Akhir" leader TIDAK dipakai lagi untuk menentukan ini —
+// murni otomatis dari data.
+function computeProbationStatus(emp){
+  const teori = getTeoriInfo(emp.name);
+  if(!teori){
+    return { kind:'warn', label:'Data e-learning tidak ditemukan', teoriPct:null, praktikPct: computePraktikPct(emp.id, emp.department) };
+  }
+  const praktikPct = computePraktikPct(emp.id, emp.department);
+  const teoriPct = teori.pct;
+
+  if(teoriPct === 100 && praktikPct === 100){
+    return { kind:'lulus', label:'Lulus Probation', teoriPct, praktikPct };
+  }
+
+  const deadline = calcProbationDeadline(emp.startDate);
+  const lewatDeadline = deadline ? (new Date() > deadline) : false;
+
+  if(lewatDeadline){
+    return { kind:'tidak', label:'Tidak Lulus', teoriPct, praktikPct };
+  }
+  return { kind:'proses', label:'Proses Belajar', teoriPct, praktikPct };
+}
 function isBulanSubmitted(prog, bulan){
   const s = prog['submit_bulan'+bulan];
   return !!(s && s.submitted);
+}
+function isBulanLockedForEdit(prog, bulan){
+  const s = prog['submit_bulan'+bulan];
+  return !!(s && s.locked);
 }
 function isBulanLocked(prog, bulan){
   if(bulan <= 1) return false;
@@ -1354,8 +1462,12 @@ function renderLeader(){
       <div style="height:10px"></div>
       <button class="tt-btn tt-btn-brass" id="addEmpBtn" style="width:100%">+ Tambah Karyawan Baru</button>
       <div id="addEmpForm" style="display:none; margin-top:12px;">
-        <div class="tt-field"><span class="tt-label">Nama Karyawan</span><input type="text" id="newEmpName" class="tt-input" placeholder="Nama lengkap"></div>
-        <div class="tt-field"><span class="tt-label">Tanggal Mulai</span><input type="date" id="newEmpDate" class="tt-input"></div>
+        <div class="tt-field">
+          <span class="tt-label">Nama Lengkap Karyawan</span>
+          <input type="text" id="newEmpName" class="tt-input" placeholder="Nama lengkap">
+          <div style="font-size:11px; color:var(--terracotta); margin-top:5px; font-weight:600;">Wajib mencantumkan nama sesuai KTP/database (dipakai untuk mencocokkan data e-learning).</div>
+        </div>
+        <div class="tt-field"><span class="tt-label">Join Date</span><input type="date" id="newEmpDate" class="tt-input"></div>
         <button class="tt-btn tt-btn-primary" id="saveEmpBtn">Simpan Karyawan</button>
       </div>
     </div>`;
@@ -1444,17 +1556,20 @@ function renderChecklist(){
     const pct = bs.total ? Math.round(bs.done/bs.total*100) : 0;
     const locked = isBulanLocked(prog, bulan);
     const submitted = isBulanSubmitted(prog, bulan);
+    const lockedForEdit = isBulanLockedForEdit(prog, bulan);
     const open = locked ? false : state.openBulan[bulan];
     const subInfo = prog['submit_bulan'+bulan] || {};
 
     html += `<div class="tt-card tt-bulan-block">
       <div class="tt-bulan-head" data-bulan="${bulan}" data-locked="${locked?'1':'0'}" style="${locked?'opacity:.55; cursor:not-allowed;':''}">
-        <div class="tt-bulan-num">B${bulan}</div>
-        <div>
-          <div class="tt-bulan-title">Bulan ${bulan} — ${BULAN_TITLE[bulan]}${locked?' 🔒':(submitted?' ✓':'')}</div>
-          <div class="tt-bulan-pct">${locked?('Selesaikan & submit Bulan '+(bulan-1)+' dulu'):(bs.done+'/'+bs.total+' poin dikuasai ('+pct+'%)')}</div>
+        <div class="tt-bulan-head-top">
+          <svg class="tt-bulan-num tt-chevron ${open?'open':''}" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="tt-bulan-title">Bulan ${bulan} — ${BULAN_TITLE[bulan]}${locked?' 🔒':(lockedForEdit?' ✓':'')}</div>
+          ${locked?'':`<div class="tt-bulan-pct">${bs.done}/${bs.total}</div>`}
         </div>
-        ${locked?'':`<svg class="tt-chevron ${open?'open':''}" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#5C7A6C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`}
+        ${locked
+          ? `<div style="font-size:12px; color:var(--sage); padding-left:23px;">Selesaikan &amp; submit Bulan ${bulan-1} dulu</div>`
+          : `<div class="tt-bulan-progress-track"><div class="tt-bulan-progress-fill" style="width:${pct}%"></div></div>`}
       </div>`;
 
     if(locked){
@@ -1464,17 +1579,19 @@ function renderChecklist(){
 
     html += `<div class="tt-bulan-content" style="display:${open?'block':'none'}">`;
 
-    if(submitted){
+    if(lockedForEdit){
       html += `<div class="tt-admin-warn" style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
-        <span>✓ Bulan ${bulan} sudah disubmit${subInfo.date?(' pada '+esc(subInfo.date)):''}${subInfo.by?(' oleh '+esc(subInfo.by)):''}.</span>
+        <span>✓ Bulan ${bulan} selesai & disubmit${subInfo.date?(' pada '+esc(subInfo.date)):''}${subInfo.by?(' oleh '+esc(subInfo.by)):''}.</span>
         <button class="tt-icon-btn" data-unsubmitbulan="${bulan}" style="flex-shrink:0;">Buka kembali untuk edit</button>
       </div>`;
+    } else if(submitted){
+      html += `<div style="font-size:11.5px; color:var(--sage); padding:2px 2px 8px;">Progres tersimpan terakhir${subInfo.date?(' pada '+esc(subInfo.date)):''}${subInfo.by?(' oleh '+esc(subInfo.by)):''}. Masih bisa diisi/diubah sampai semua poin selesai.</div>`;
     }
 
-    html += `<div class="tt-bulan-fields"${submitted?' style="pointer-events:none; opacity:.6;"':''}>`;
+    html += `<div class="tt-bulan-fields"${lockedForEdit?' style="pointer-events:none; opacity:.6;"':''}>`;
 
     let lastKat = null;
-    bulanItems.forEach(it=>{
+    bulanItems.forEach((it, idx)=>{
       if(it.kat !== lastKat){
         html += `<div class="tt-kategori">${esc(it.kat)}</div>`;
         lastKat = it.kat;
@@ -1491,14 +1608,20 @@ function renderChecklist(){
       const vi = prog['val_item_'+it.no] || {};
       html += `<div class="tt-item ${isDone?'done':''} ${it.final?'tt-final-item':''}" data-itemno="${it.no}">
         ${isDone?'<div class="tt-stamp">✓ Dikuasai</div>':''}
-        <div class="tt-item-point">${esc(it.point)}</div>
-        <div class="tt-status-pills">
-          ${opts.map(o=>`<div class="tt-pill ${effStatus===o?'sel':''}" data-val="${esc(o)}">${esc(statusLabel(o))}</div>`).join('')}
+        <div class="tt-item-row">
+          <div class="tt-item-num">${idx+1}</div>
+          <div class="tt-item-body">
+            <div class="tt-item-point">${esc(it.point)}</div>
+            <div class="tt-item-kode">${esc(it.kode)}</div>
+            <div class="tt-status-pills">
+              ${opts.map(o=>`<div class="tt-pill ${effStatus===o?'sel':''}" data-val="${esc(o)}">${esc(statusLabel(o))}</div>`).join('')}
+            </div>
+            <div class="tt-item-grid">
+              <input type="text" class="item-note tt-item-note" placeholder="Catatan (opsional)" value="${esc(v.note||'')}" style="grid-column:1/-1;">
+            </div>
+            ${vi.valid?`<div style="margin-top:8px; font-size:11.5px; color:${vi.valid==='Valid'?'#3E7D53':'var(--terracotta)'}; font-weight:600;">Validator: ${esc(vi.valid)}${vi.catatan?` &mdash; ${esc(vi.catatan)}`:''}</div>`:''}
+          </div>
         </div>
-        <div class="tt-item-grid">
-          <input type="text" class="item-note tt-item-note" placeholder="Catatan (opsional)" value="${esc(v.note||'')}" style="grid-column:1/-1;">
-        </div>
-        ${vi.valid?`<div style="margin-top:8px; font-size:11.5px; color:${vi.valid==='Valid'?'var(--teal-2)':'var(--terracotta)'}; font-weight:600;">Validator: ${esc(vi.valid)}${vi.catatan?` &mdash; ${esc(vi.catatan)}`:''}</div>`:''}
       </div>`;
     });
 
@@ -1508,10 +1631,12 @@ function renderChecklist(){
     html += `</div>`; // tutup .tt-bulan-fields (wrapper kunci-jika-disubmit)
     html += `</div>`; // tutup .tt-bulan-content
 
-    if(!submitted){
+    if(!lockedForEdit){
       html += `<div style="padding:2px 2px 4px;">
-        <button class="tt-btn tt-btn-primary" data-submitbulan="${bulan}" style="width:100%;">Submit Bulan ${bulan}</button>
-        <div style="font-size:11.5px; color:var(--sage); margin-top:6px; text-align:center;">Wajib submit untuk menyimpan progres training.</div>
+        <button class="tt-btn tt-btn-primary" data-submitbulan="${bulan}" style="width:100%;">Submit Progress</button>
+        <div style="font-size:11.5px; color:var(--sage); margin-top:6px; text-align:center;">${pct>=100
+          ? 'Semua poin sudah terisi &mdash; submit untuk mengunci progres bulan ini.'
+          : 'Bisa disubmit kapan saja untuk menyimpan progres. Poin tetap bisa diisi/diubah sampai semua selesai.'}</div>
       </div>`;
     }
 
@@ -1584,20 +1709,21 @@ function bindChecklistEvents(empId){
       const bsNow = statsNow.byBulan[bulan];
       const complete = bsNow.total>0 && bsNow.done===bsNow.total;
       const msg = complete
-        ? 'Submit Bulan '+bulan+'? Bulan berikutnya akan terbuka & bulan ini terkunci (bisa dibuka lagi kalau perlu edit).'
-        : 'Progres Bulan '+bulan+' baru '+bsNow.done+'/'+bsNow.total+' poin. Submit tetap akan menyimpan progres & membuka Bulan berikutnya, dan bulan ini terkunci sampai dibuka lagi. Lanjutkan?';
+        ? 'Semua poin Bulan '+bulan+' sudah terisi. Submit untuk menyimpan & MENGUNCI progres bulan ini (bisa dibuka lagi kalau perlu edit), dan membuka Bulan berikutnya. Lanjutkan?'
+        : 'Simpan progres Bulan '+bulan+' saat ini ('+bsNow.done+'/'+bsNow.total+' poin)? Bulan ini TETAP BISA diisi/diubah lagi nanti (belum terkunci), dan Bulan berikutnya akan terbuka.';
       if(!confirm(msg)) return;
 
       const key = 'submit_bulan'+bulan;
       state.progress[empId] = state.progress[empId] || {};
       state.progress[empId][key] = {
         submitted: true,
+        locked: complete,
         date: new Date().toISOString().slice(0,10),
         by: state.leaderName || (state.session ? state.session.name : '')
       };
       await saveProgress(empId, key);
       renderChecklist();
-      showToast('Bulan '+bulan+' berhasil disubmit');
+      showToast(complete ? 'Bulan '+bulan+' selesai & terkunci' : 'Progres Bulan '+bulan+' tersimpan');
     });
   });
 
@@ -1607,7 +1733,7 @@ function bindChecklistEvents(empId){
       if(!confirm('Buka kembali Bulan '+bulan+' untuk diedit? Bulan berikutnya (kalau sudah terbuka) akan terkunci lagi sampai bulan ini disubmit ulang.')) return;
       const key = 'submit_bulan'+bulan;
       state.progress[empId] = state.progress[empId] || {};
-      state.progress[empId][key] = { submitted: false };
+      state.progress[empId][key] = { submitted: false, locked: false };
       await saveProgress(empId, key);
       renderChecklist();
       showToast('Bulan '+bulan+' dibuka kembali untuk edit');
@@ -1706,7 +1832,7 @@ function renderValidasiReadOnlyCard(bulan, items, prog){
     <div style="font-size:12.5px; color:var(--sage); margin-top:8px;">
       ${doneItems.length===0
         ? 'Belum ada poin &quot;Sudah Dikuasai&quot; untuk divalidasi.'
-        : ratedCount+'/'+doneItems.length+' poin sudah dinilai'+(ratedCount>0?` &middot; <span style="color:var(--teal-2); font-weight:600;">${validCount} Valid</span>`+(invalidCount>0?`, <span style="color:var(--terracotta); font-weight:600;">${invalidCount} Tidak Valid</span>`:''):'')}
+        : ratedCount+'/'+doneItems.length+' poin sudah dinilai'+(ratedCount>0?` &middot; <span style="color:#3E7D53; font-weight:600;">${validCount} Valid</span>`+(invalidCount>0?`, <span style="color:var(--terracotta); font-weight:600;">${invalidCount} Tidak Valid</span>`:''):'')}
     </div>
     ${vv.foto?`<div style="margin-top:10px;"><img src="${vv.foto}" style="width:56px; height:56px; object-fit:cover; border-radius:8px; border:1.5px solid var(--line);"></div>`:''}
     ${vv.catatan?`<div style="font-size:12px; color:var(--sage); margin-top:8px;">Catatan: ${esc(vv.catatan)}</div>`:''}
@@ -1749,11 +1875,12 @@ function renderValidationPanel(){
 
     html += `<div class="tt-card tt-bulan-block">
       <div class="tt-bulan-head" style="cursor:default;">
-        <div class="tt-bulan-num">B${bulan}</div>
-        <div>
+        <div class="tt-bulan-head-top">
           <div class="tt-bulan-title">Bulan ${bulan} — ${BULAN_TITLE[bulan]}${vSubmitted?' ✓':''}</div>
-          <div class="tt-bulan-pct">${doneItems.length} poin siap divalidasi (${ratedCount}/${doneItems.length} dinilai)${pendingCount>0?' &middot; '+pendingCount+' poin belum &quot;Sudah Dikuasai&quot;':''}</div>
+          <div class="tt-bulan-pct">${ratedCount}/${doneItems.length}</div>
         </div>
+        <div class="tt-bulan-progress-track"><div class="tt-bulan-progress-fill" style="width:${doneItems.length?Math.round(ratedCount/doneItems.length*100):0}%"></div></div>
+        <div style="font-size:11.5px; color:var(--sage);">${doneItems.length} poin siap divalidasi${pendingCount>0?' &middot; '+pendingCount+' poin belum &quot;Sudah Dikuasai&quot;':''}</div>
       </div>`;
 
     if(doneItems.length === 0){
@@ -1771,20 +1898,26 @@ function renderValidationPanel(){
     html += `<div class="tt-bulan-fields"${vSubmitted?' style="pointer-events:none; opacity:.6;"':''}>`;
 
     let lastKat = null;
-    doneItems.forEach(it=>{
+    doneItems.forEach((it, idx)=>{
       if(it.kat !== lastKat){
         html += `<div class="tt-kategori">${esc(it.kat)}</div>`;
         lastKat = it.kat;
       }
       const vi = prog['val_item_'+it.no] || {};
       html += `<div class="tt-item" data-valitemno="${it.no}">
-        <div class="tt-item-point">${esc(it.point)}</div>
-        <div class="tt-status-pills">
-          <div class="tt-pill" data-val="Valid" style="${vi.valid==='Valid'?'background:var(--teal-2); border-color:var(--teal-2); color:#fff;':''}">Valid</div>
-          <div class="tt-pill" data-val="Tidak Valid" style="${vi.valid==='Tidak Valid'?'background:var(--terracotta); border-color:var(--terracotta); color:#fff;':''}">Tidak Valid</div>
-        </div>
-        <div class="tt-item-grid">
-          <input type="text" class="val-item-note" data-valno="${it.no}" placeholder="Catatan (opsional)" value="${esc(vi.catatan||'')}" style="grid-column:1/-1;">
+        <div class="tt-item-row">
+          <div class="tt-item-num">${idx+1}</div>
+          <div class="tt-item-body">
+            <div class="tt-item-point">${esc(it.point)}</div>
+            <div class="tt-item-kode">${esc(it.kode)}</div>
+            <div class="tt-status-pills">
+              <div class="tt-pill" data-val="Valid" style="${vi.valid==='Valid'?'background:var(--teal-2); border-color:var(--teal-2); color:#fff;':''}">Valid</div>
+              <div class="tt-pill" data-val="Tidak Valid" style="${vi.valid==='Tidak Valid'?'background:var(--terracotta); border-color:var(--terracotta); color:#fff;':''}">Tidak Valid</div>
+            </div>
+            <div class="tt-item-grid">
+              <input type="text" class="val-item-note" data-valno="${it.no}" placeholder="Catatan (opsional)" value="${esc(vi.catatan||'')}" style="grid-column:1/-1;">
+            </div>
+          </div>
         </div>
       </div>`;
     });
@@ -1932,13 +2065,13 @@ async function renderDashboard(){
       ${outlets.map(o=>`<option value="${esc(o)}" ${state.dashFilterOutlet===o?'selected':''}>${esc(o)}</option>`).join('')}
     </select>
     <select id="filterDept">
-      <option value="">Semua Departemen</option>
+      <option value="">Semua Section</option>
       ${Object.keys(state.depts).map(k=>`<option value="${k}" ${state.dashFilterDept===k?'selected':''}>${state.depts[k].label}</option>`).join('')}
     </select>
   </div>`;
 
   if(!state.dashFiltersTouched){
-    html += `<div class="tt-empty">Pilih Outlet dan/atau Departemen dulu di atas untuk menampilkan data.<br>Mau lihat semua? Pilih salah satu dropdown lalu biarkan di "Semua Outlet"/"Semua Departemen".</div>`;
+    html += `<div class="tt-empty">Pilih Outlet dan/atau Section dulu di atas untuk menampilkan data.<br>Mau lihat semua? Pilih salah satu dropdown lalu biarkan di "Semua Outlet"/"Semua Section".</div>`;
     root.innerHTML = html;
     bindDashboardFilterEvents();
     return;
@@ -1954,7 +2087,7 @@ async function renderDashboard(){
   for(const e of list){ await loadProgress(e.id); }
 
   const totalEmp = list.length;
-  const lulusCount = list.filter(e=>computeStats(e.id,e.department).finalStatus==='Lulus Probation').length;
+  const lulusCount = list.filter(e=>computeProbationStatus(e).kind==='lulus').length;
   const berjalanCount = totalEmp - lulusCount;
 
   const outletGroups = {};
@@ -1965,7 +2098,7 @@ async function renderDashboard(){
     emps.forEach(e=>{
       const st = computeStats(e.id, e.department);
       sumPct += st.overallPct;
-      if(st.finalStatus==='Lulus Probation') lulus++;
+      if(computeProbationStatus(e).kind==='lulus') lulus++;
     });
     return { outlet:o, avgPct: emps.length ? Math.round(sumPct/emps.length) : 0, total: emps.length, lulus };
   }).sort((a,b)=> a.avgPct - b.avgPct || a.outlet.localeCompare(b.outlet));
@@ -1975,7 +2108,7 @@ async function renderDashboard(){
       <span class="tt-label">Penyelesaian Probation per Outlet</span>
       <div class="tt-outlet-stats">
         ${outletStats.map(os=>{
-          const fillColor = os.avgPct < 40 ? 'var(--terracotta)' : os.avgPct >= 100 ? 'var(--teal-2)' : 'var(--brass)';
+          const fillColor = os.avgPct < 40 ? 'var(--terracotta)' : os.avgPct >= 100 ? '#3E7D53' : '#C98A3E';
           return `<div class="tt-outlet-row">
           <div class="tt-outlet-row-top"><span>${esc(os.outlet)}</span><span style="color:${fillColor}">${os.avgPct}%</span></div>
           <div class="tt-outlet-track"><div class="tt-outlet-fill" style="width:${os.avgPct}%; background:${fillColor};"></div></div>
@@ -1998,29 +2131,28 @@ async function renderDashboard(){
     html += `<div class="tt-card" style="padding:0; overflow-x:auto;">
       <table class="tt-table">
         <thead><tr>
-          <th>Karyawan</th><th>Outlet</th><th>Dept</th><th>B1</th><th>B2</th><th>B3</th><th>Total</th><th>Tahap Saat Ini</th><th>Status</th><th>Validasi</th>
+          <th>Karyawan</th><th>Outlet</th><th>Section</th><th>Theory (E-Learning)</th><th>Practice (Leader Checklist)</th><th>Tahap Saat Ini</th><th>Status Probation</th><th>Validasi</th>
         </tr></thead>
         <tbody>`;
     list.forEach(e=>{
       const st = computeStats(e.id, e.department);
-      const badge = st.finalStatus==='Lulus Probation' ? '<span class="tt-badge lulus">Lulus</span>'
-                  : st.finalStatus==='Tidak Lulus' ? '<span class="tt-badge tidak">Tidak Lulus</span>'
-                  : st.finalStatus==='Perlu Tambahan Waktu' ? '<span class="tt-badge tambahan">Tambahan Waktu</span>'
-                  : '<span class="tt-badge jalan">Berjalan</span>';
+      const probation = computeProbationStatus(e);
+      const badgeClassMap = { lulus:'lulus', tidak:'tidak', proses:'jalan', warn:'warn' };
+      const badge = `<span class="tt-badge ${badgeClassMap[probation.kind]}">${esc(probation.label)}</span>`;
+      const elCell = probation.teoriPct === null
+        ? '<span style="color:var(--sage); font-style:italic; font-size:11.5px;">tidak ditemukan</span>'
+        : `<div class="tt-bar-cell"><div class="tt-bar-track"><div class="tt-bar-fill" style="width:${probation.teoriPct}%"></div></div><span>${probation.teoriPct}%</span></div>`;
+      const praktikCell = `<div class="tt-bar-cell"><div class="tt-bar-track"><div class="tt-bar-fill" style="width:${st.overallPct}%"></div></div><span>${st.overallPct}%</span></div>`;
       const verdict = computeValidasiVerdict(e.id, e.department);
       const valBadge = verdict==='Valid' ? '<span class="tt-badge lulus">Valid</span>'
                       : verdict==='Tidak Valid' ? '<span class="tt-badge tidak">Tidak Valid</span>'
                       : '<span class="tt-badge tambahan">Proses Validasi</span>';
-      const pctCell = (b)=>{
-        const bs = st.byBulan[b]; const p = bs.total?Math.round(bs.done/bs.total*100):0;
-        return `<div class="tt-bar-cell"><div class="tt-bar-track"><div class="tt-bar-fill" style="width:${p}%"></div></div><span>${p}%</span></div>`;
-      };
       html += `<tr data-emp="${e.id}">
         <td style="font-weight:600">${esc(e.name)}</td>
         <td>${esc(e.outlet)}</td>
         <td>${state.depts[e.department].label}</td>
-        <td>${pctCell(1)}</td><td>${pctCell(2)}</td><td>${pctCell(3)}</td>
-        <td style="font-weight:700">${st.overallPct}%</td>
+        <td>${elCell}</td>
+        <td>${praktikCell}</td>
         <td style="white-space:nowrap;">${esc(currentStageLabel(st))}</td>
         <td>${badge}</td>
         <td>${valBadge}</td>
