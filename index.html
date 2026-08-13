@@ -1151,7 +1151,7 @@ function isBulanLockedForEdit(prog, bulan){
 }
 function isBulanLocked(prog, bulan){
   if(bulan <= 1) return false;
-  return !isBulanSubmitted(prog, bulan-1);
+  return !isBulanLockedForEdit(prog, bulan-1);
 }
 
 function outletList(){
@@ -1568,7 +1568,7 @@ function renderChecklist(){
           ${locked?'':`<div class="tt-bulan-pct">${bs.done}/${bs.total}</div>`}
         </div>
         ${locked
-          ? `<div style="font-size:12px; color:var(--sage); padding-left:23px;">Selesaikan &amp; submit Bulan ${bulan-1} dulu</div>`
+          ? `<div style="font-size:12px; color:var(--sage); padding-left:23px;">Selesaikan semua poin & submit Bulan ${bulan-1} dulu (sampai terkunci)</div>`
           : `<div class="tt-bulan-progress-track"><div class="tt-bulan-progress-fill" style="width:${pct}%"></div></div>`}
       </div>`;
 
@@ -1710,7 +1710,7 @@ function bindChecklistEvents(empId){
       const complete = bsNow.total>0 && bsNow.done===bsNow.total;
       const msg = complete
         ? 'Semua poin Bulan '+bulan+' sudah terisi. Submit untuk menyimpan & MENGUNCI progres bulan ini (bisa dibuka lagi kalau perlu edit), dan membuka Bulan berikutnya. Lanjutkan?'
-        : 'Simpan progres Bulan '+bulan+' saat ini ('+bsNow.done+'/'+bsNow.total+' poin)? Bulan ini TETAP BISA diisi/diubah lagi nanti (belum terkunci), dan Bulan berikutnya akan terbuka.';
+        : 'Simpan progres Bulan '+bulan+' saat ini ('+bsNow.done+'/'+bsNow.total+' poin)? Bulan ini TETAP BISA diisi/diubah lagi nanti (belum terkunci). Bulan berikutnya baru terbuka setelah bulan ini 100% & terkunci.';
       if(!confirm(msg)) return;
 
       const key = 'submit_bulan'+bulan;
@@ -1730,7 +1730,7 @@ function bindChecklistEvents(empId){
   document.querySelectorAll('[data-unsubmitbulan]').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       const bulan = btn.dataset.unsubmitbulan;
-      if(!confirm('Buka kembali Bulan '+bulan+' untuk diedit? Bulan berikutnya (kalau sudah terbuka) akan terkunci lagi sampai bulan ini disubmit ulang.')) return;
+      if(!confirm('Buka kembali Bulan '+bulan+' untuk diedit? Bulan berikutnya (kalau sudah terbuka) akan terkunci lagi sampai bulan ini 100% & disubmit ulang.')) return;
       const key = 'submit_bulan'+bulan;
       state.progress[empId] = state.progress[empId] || {};
       state.progress[empId][key] = { submitted: false, locked: false };
@@ -2258,9 +2258,18 @@ function renderAdmin(){
 
   html += `<div class="tt-card">
     <span class="tt-label">Akun Leader Terdaftar</span>
-    <div style="font-size:11.5px; color:var(--sage); margin-bottom:8px;">Leader mendaftar sendiri lewat halaman login. Hapus akun di sini kalau leader resign atau perlu daftar ulang (misal lupa password).</div>
-    <div class="tt-chip-list">
-      ${state.leaderAccounts.map(a=>`<div class="tt-chip">${esc(a.name)} &middot; ${esc(a.email)}<button data-delleaderacc="${esc(a.email)}" title="Hapus akun">&times;</button></div>`).join('') || '<div style="font-size:12.5px; color:var(--sage);">Belum ada leader yang mendaftar.</div>'}
+    <div style="font-size:11.5px; color:var(--sage); margin-bottom:8px;">Leader mendaftar sendiri lewat halaman login. Kalau lupa password, klik "Reset Password" — gak perlu hapus akun.</div>
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      ${state.leaderAccounts.map(a=>`<div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border:1.5px solid var(--line); border-radius:10px;">
+        <div style="min-width:0;">
+          <div style="font-weight:600; font-size:13px; color:var(--ink);">${esc(a.name)}</div>
+          <div style="font-size:11.5px; color:var(--sage);">${esc(a.email)}</div>
+        </div>
+        <div style="display:flex; gap:6px; flex-shrink:0;">
+          <button class="tt-icon-btn" data-resetleaderacc="${esc(a.email)}">Reset Password</button>
+          <button class="tt-icon-btn danger" data-delleaderacc="${esc(a.email)}" title="Hapus akun">Hapus</button>
+        </div>
+      </div>`).join('') || '<div style="font-size:12.5px; color:var(--sage);">Belum ada leader yang mendaftar.</div>'}
     </div>
   </div>`;
 
@@ -2277,9 +2286,18 @@ function renderAdmin(){
 
   html += `<div class="tt-card">
     <span class="tt-label">Akun Validator Terdaftar</span>
-    <div style="font-size:11.5px; color:var(--sage); margin-bottom:8px;">Validator mendaftar sendiri lewat halaman login (pilih peran "Validator"). Hapus akun di sini kalau perlu daftar ulang.</div>
-    <div class="tt-chip-list">
-      ${state.validatorAccounts.map(a=>`<div class="tt-chip">${esc(a.name)} &middot; ${esc(a.email)}<button data-delvalidatoracc="${esc(a.email)}" title="Hapus akun">&times;</button></div>`).join('') || '<div style="font-size:12.5px; color:var(--sage);">Belum ada validator yang mendaftar.</div>'}
+    <div style="font-size:11.5px; color:var(--sage); margin-bottom:8px;">Validator mendaftar sendiri lewat halaman login (pilih peran "Validator"). Kalau lupa password, klik "Reset Password" — gak perlu hapus akun.</div>
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      ${state.validatorAccounts.map(a=>`<div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border:1.5px solid var(--line); border-radius:10px;">
+        <div style="min-width:0;">
+          <div style="font-weight:600; font-size:13px; color:var(--ink);">${esc(a.name)}</div>
+          <div style="font-size:11.5px; color:var(--sage);">${esc(a.email)}</div>
+        </div>
+        <div style="display:flex; gap:6px; flex-shrink:0;">
+          <button class="tt-icon-btn" data-resetvalidatoracc="${esc(a.email)}">Reset Password</button>
+          <button class="tt-icon-btn danger" data-delvalidatoracc="${esc(a.email)}" title="Hapus akun">Hapus</button>
+        </div>
+      </div>`).join('') || '<div style="font-size:12.5px; color:var(--sage);">Belum ada validator yang mendaftar.</div>'}
     </div>
   </div>`;
 
@@ -2415,6 +2433,20 @@ function bindAdminEvents(deptKey){
     });
   });
 
+  document.querySelectorAll('[data-resetleaderacc]').forEach(b=>{
+    b.addEventListener('click', async ()=>{
+      const email = b.dataset.resetleaderacc;
+      const acc = state.leaderAccounts.find(a=>a.email===email);
+      if(!acc) return;
+      const newPass = prompt('Password baru untuk '+acc.name+' (minimal 6 karakter):');
+      if(newPass === null) return;
+      if(newPass.length < 6){ showToast('Password minimal 6 karakter'); return; }
+      acc.passwordHash = await hashPassword(newPass);
+      await saveLeaderAccounts();
+      showToast('Password '+acc.name+' berhasil direset');
+    });
+  });
+
   const addOutletBtn = document.getElementById('addOutletBtn');
   if(addOutletBtn) addOutletBtn.addEventListener('click', async ()=>{
     const input = document.getElementById('newOutletInput');
@@ -2443,6 +2475,20 @@ function bindAdminEvents(deptKey){
       await saveValidatorAccounts();
       renderAdmin();
       showToast('Akun validator dihapus');
+    });
+  });
+
+  document.querySelectorAll('[data-resetvalidatoracc]').forEach(b=>{
+    b.addEventListener('click', async ()=>{
+      const email = b.dataset.resetvalidatoracc;
+      const acc = state.validatorAccounts.find(a=>a.email===email);
+      if(!acc) return;
+      const newPass = prompt('Password baru untuk '+acc.name+' (minimal 6 karakter):');
+      if(newPass === null) return;
+      if(newPass.length < 6){ showToast('Password minimal 6 karakter'); return; }
+      acc.passwordHash = await hashPassword(newPass);
+      await saveValidatorAccounts();
+      showToast('Password '+acc.name+' berhasil direset');
     });
   });
 
