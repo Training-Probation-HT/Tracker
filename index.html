@@ -433,7 +433,7 @@
     <h1 class="tt-title">Training Tracker Probation</h1>
     <div class="tt-sub">Hanya boleh diisi oleh Leader dan Validator</div>
     <div class="tt-tabs">
-      <div class="tt-tab active" data-tab="leader" id="mainTabBtn">Isi Checklist</div>
+      <div class="tt-tab active" data-tab="leader" id="mainTabBtn">Checklist Praktik</div>
       <div class="tt-tab" data-tab="dashboard">Dashboard</div>
       <div class="tt-tab" data-tab="panduan">Panduan</div>
     </div>
@@ -587,6 +587,8 @@ const STATUS_LABELS = {
 };
 function statusLabel(v){ return STATUS_LABELS[v] || v; }
 const BULAN_TITLE = {1:"Kompetensi Dasar",2:"Produksi / SOP Sesuai Standar",3:"Review Keseluruhan"};
+// Nama file PDF panduan — upload file ini di folder yang SAMA dengan index.html di GitHub.
+const PANDUAN_PDF_URL = "Panduan.pdf";
 
 const EYE_ICON = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/></svg>`;
 const EYE_OFF_ICON = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 3l18 18M10.6 10.6a3 3 0 0 0 4.2 4.2M9.9 4.24A11 11 0 0 1 12 4c7 0 11 7 11 7a13.3 13.3 0 0 1-3.05 3.94M6.1 6.1A13.3 13.3 0 0 0 1 11s4 7 11 7a10.9 10.9 0 0 0 4.24-.86" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -1191,7 +1193,7 @@ function updateMainTabLabel(){
   const btn = document.getElementById('mainTabBtn');
   if(!btn) return;
   if(state.session && state.session.role === 'validator') btn.textContent = 'Validasi';
-  else btn.textContent = 'Isi Checklist';
+  else btn.textContent = 'Checklist Praktik';
 }
 
 function render(){
@@ -1217,7 +1219,13 @@ function renderAuth(){
   const role = state.authRole; // 'leader' | 'validator'
   const roleLabel = role === 'validator' ? 'Validator' : 'Leader';
 
-  let html = `<div class="tt-card">
+  let html = `<div class="tt-card" style="text-align:center;">
+    <a href="${PANDUAN_PDF_URL}" target="_blank" rel="noopener" style="color:var(--teal); font-weight:700; font-size:13px; text-decoration:none; display:inline-flex; align-items:center; gap:7px;">
+      📄 Baca Panduan Penggunaan (PDF) sebelum login
+    </a>
+  </div>
+
+  <div class="tt-card">
     <span class="tt-label">Masuk sebagai</span>
     <div class="tt-dept-grid" style="margin-top:6px; margin-bottom:14px;">
       <div class="tt-dept-btn ${role==='leader'?'active':''}" data-authrole="leader">Leader</div>
@@ -1330,7 +1338,12 @@ function renderAuth(){
 // ---------- PANDUAN ----------
 function renderPanduan(){
   const text = state.panduanText || "Panduan belum diisi oleh Admin.";
-  root.innerHTML = `<div class="tt-card">
+  root.innerHTML = `<div class="tt-card" style="text-align:center;">
+    <a href="${PANDUAN_PDF_URL}" target="_blank" rel="noopener" class="tt-btn tt-btn-primary" style="display:inline-flex; align-items:center; gap:7px; text-decoration:none; width:auto; padding:10px 20px;">
+      📄 Buka Panduan Penggunaan (PDF)
+    </a>
+  </div>
+  <div class="tt-card">
     <span class="tt-label">Panduan Penggunaan</span>
     <div style="font-size:13.5px; line-height:1.65; margin-top:8px; white-space:pre-wrap;">${esc(text)}</div>
   </div>`;
@@ -2126,7 +2139,7 @@ async function renderDashboard(){
   </div>`;
 
   if(list.length === 0){
-    html += `<div class="tt-empty">Belum ada data karyawan${(state.dashFilterOutlet||state.dashFilterDept||state.dashFilterName)?' untuk filter ini':''}.<br>Mulai isi dari tab "Isi Checklist".</div>`;
+    html += `<div class="tt-empty">Belum ada data karyawan${(state.dashFilterOutlet||state.dashFilterDept||state.dashFilterName)?' untuk filter ini':''}.<br>Mulai isi dari tab "Checklist Praktik".</div>`;
   } else {
     html += `<div class="tt-card" style="padding:0; overflow-x:auto;">
       <table class="tt-table">
