@@ -339,6 +339,7 @@
   }
   .tt-icon-btn.danger{ color:var(--terracotta); border-color:var(--terracotta); }
   .tt-icon-btn.confirm{ background:var(--terracotta); color:#fff; border-color:var(--terracotta); }
+  .tt-icon-btn:disabled{ opacity:.35; cursor:not-allowed; }
   .tt-admin-edit-form{ width:100%; }
   .tt-admin-edit-form .tt-field{ margin-bottom:8px; }
   .tt-admin-add-card{ border:1.5px dashed var(--brass); background:var(--cream-2); }
@@ -429,12 +430,12 @@
 <div class="tt-root" id="ttRoot">
   <div class="tt-header">
     <div class="tt-admin-corner" data-tab="admin">Admin</div>
-    <div class="tt-eyebrow">Logbook Pembelajaran - HT</div>
-    <h1 class="tt-title">Training Tracker Probation</h1>
+    <div class="tt-eyebrow">Hang Tuah Academy</div>
+    <h1 class="tt-title">Checklist Pembelajaran- Karyawan Probation</h1>
     <div class="tt-sub">Hanya boleh diisi oleh Leader dan Validator</div>
     <div class="tt-tabs">
-      <div class="tt-tab active" data-tab="leader" id="mainTabBtn">Checklist Praktik</div>
-      <div class="tt-tab" data-tab="dashboard">Dashboard</div>
+      <div class="tt-tab active" data-tab="leader" id="mainTabBtn">Checklist Belajar</div>
+      <div class="tt-tab" data-tab="dashboard" id="dashboardTabBtn">Dashboard</div>
       <div class="tt-tab" data-tab="panduan">Panduan</div>
     </div>
   </div>
@@ -1025,7 +1026,12 @@ function compressImage(file){
   });
 }
 
-function deptItemsFor(deptKey){ return state.depts[deptKey] ? state.depts[deptKey].items : []; }
+function deptItemsFor(deptKey){
+  const items = state.depts[deptKey] ? state.depts[deptKey].items : [];
+  // Urutan tampilan mengikuti field "urutan" (hasil pindah-pindah di Admin), fallback ke "no"
+  // untuk poin lama yang belum pernah diatur ulang urutannya.
+  return items.slice().sort((a,b)=>(a.urutan??a.no)-(b.urutan??b.no));
+}
 
 function computeStats(empId, deptKey){
   const items = deptItemsFor(deptKey);
@@ -1191,25 +1197,43 @@ document.querySelector('.tt-admin-corner').addEventListener('click', ()=>{
 
 function updateMainTabLabel(){
   const btn = document.getElementById('mainTabBtn');
-  if(!btn) return;
-  if(state.session && state.session.role === 'validator') btn.textContent = 'Validasi';
-  else btn.textContent = 'Checklist Praktik';
+  if(btn){
+    if(state.session && state.session.role === 'validator') btn.textContent = 'Validasi';
+    else btn.textContent = 'Checklist Belajar';
+  }
+  // Dashboard cuma boleh dilihat Admin (PIN) & Validator — disembunyikan untuk Leader.
+  const dashBtn = document.getElementById('dashboardTabBtn');
+  if(dashBtn){
+    const canSeeDashboard = state.adminUnlocked || (state.session && state.session.role === 'validator');
+    dashBtn.style.display = canSeeDashboard ? '' : 'none';
+  }
 }
 
 function render(){
   if(!state.loaded){ root.innerHTML = '<div class="tt-empty">Memuat data…</div>'; return; }
+  updateMainTabLabel();
   if(state.tab === 'admin'){
     if(!state.adminUnlocked) renderAdminGate();
     else renderAdmin();
     return;
   }
+  if(state.tab === 'dashboard'){
+    // Diizinkan lewat 2 jalur: sudah unlock Admin (PIN), atau login sebagai Validator.
+    if(state.adminUnlocked || (state.session && state.session.role === 'validator')){
+      renderDashboard();
+      return;
+    }
+    if(!state.session){ renderAuth(); return; }
+    // Login sebagai Leader -> tidak diizinkan, kembalikan ke tab checklist miliknya.
+    state.tab = 'leader';
+    render();
+    return;
+  }
   if(!state.session){ renderAuth(); return; }
-  updateMainTabLabel();
   if(state.tab === 'leader'){
     if(state.session.role === 'validator') renderValidator();
     else renderLeader();
   }
-  else if(state.tab === 'dashboard') renderDashboard();
   else if(state.tab === 'panduan') renderPanduan();
 }
 
@@ -1421,10 +1445,10 @@ function renderAdminGate(){
     if(input.value === String(state.adminPin)){
       state.adminUnlocked = true;
       state.adminGateError = "";
-      renderAdmin();
+      render();
     } else {
       state.adminGateError = "PIN salah, coba lagi.";
-      renderAdminGate();
+      render();
     }
   };
   submit.addEventListener('click', tryUnlock);
@@ -1463,7 +1487,7 @@ function renderLeader(){
   if(state.outlet && state.dept){
     const filtered = state.employees.filter(e=>e.outlet===state.outlet && e.department===state.dept);
     html += `<div class="tt-card">
-      <span class="tt-label">Karyawan</span>
+      <span class="tt-label">Nama Karyawan Probation</span>
       <select id="empSelect" class="tt-input">
         <option value="">-- Pilih Karyawan --</option>
         ${filtered.map(e=>{
@@ -1785,7 +1809,7 @@ function renderValidator(){
   if(state.outlet && state.dept){
     const filtered = state.employees.filter(e=>e.outlet===state.outlet && e.department===state.dept);
     html += `<div class="tt-card">
-      <span class="tt-label">Karyawan</span>
+      <span class="tt-label">Nama Karyawan Probation</span>
       <select id="empSelect" class="tt-input">
         <option value="">-- Pilih Karyawan --</option>
         ${filtered.map(e=>`<option value="${e.id}" ${state.currentEmployeeId===e.id?'selected':''}>${esc(e.name)}</option>`).join('')}
@@ -2139,7 +2163,7 @@ async function renderDashboard(){
   </div>`;
 
   if(list.length === 0){
-    html += `<div class="tt-empty">Belum ada data karyawan${(state.dashFilterOutlet||state.dashFilterDept||state.dashFilterName)?' untuk filter ini':''}.<br>Mulai isi dari tab "Checklist Praktik".</div>`;
+    html += `<div class="tt-empty">Belum ada data karyawan${(state.dashFilterOutlet||state.dashFilterDept||state.dashFilterName)?' untuk filter ini':''}.<br>Mulai isi dari tab "Checklist Belajar".</div>`;
   } else {
     html += `<div class="tt-card" style="padding:0; overflow-x:auto;">
       <table class="tt-table">
@@ -2330,11 +2354,11 @@ function renderAdmin(){
   </div>`;
 
   [1,2,3].forEach(bulan=>{
-    const items = dept.items.filter(it=>it.bulan===bulan).sort((a,b)=>a.no-b.no);
+    const items = dept.items.filter(it=>it.bulan===bulan).sort((a,b)=>(a.urutan??a.no)-(b.urutan??b.no));
     html += `<div class="tt-card">
       <div style="font-weight:700; font-size:14px; color:var(--teal); margin-bottom:8px; border-bottom:2px solid var(--brass); padding-bottom:6px;">Bulan ${bulan} — ${BULAN_TITLE[bulan]}</div>`;
 
-    items.forEach(it=>{
+    items.forEach((it, idx)=>{
       if(state.adminEditingNo === it.no){
         html += renderAdminEditForm(deptKey, it);
       } else {
@@ -2344,6 +2368,8 @@ function renderAdmin(){
             <div class="tt-admin-item-point">${esc(it.point)}</div>
           </div>
           <div class="tt-admin-actions">
+            <button class="tt-icon-btn" data-moveup="${it.no}" data-bulan="${bulan}" ${idx===0?'disabled':''} title="Pindah ke atas">&uarr;</button>
+            <button class="tt-icon-btn" data-movedown="${it.no}" data-bulan="${bulan}" ${idx===items.length-1?'disabled':''} title="Pindah ke bawah">&darr;</button>
             <button class="tt-icon-btn" data-editno="${it.no}">Edit</button>
             ${state.adminConfirmDeleteNo===it.no
               ? `<button class="tt-icon-btn confirm" data-confirmdelno="${it.no}">Yakin hapus?</button><button class="tt-icon-btn" data-canceldelno="${it.no}">Batal</button>`
@@ -2364,6 +2390,30 @@ function renderAdmin(){
 
   root.innerHTML = html;
   bindAdminEvents(deptKey);
+}
+
+// Menukar urutan tampilan 2 poin yang bersebelahan dalam 1 bulan yang sama.
+// Sengaja TIDAK menyentuh field "no" — itu dipakai sebagai kunci progress
+// karyawan (item_<no>, val_item_<no>), jadi harus tetap stabil biar data lama tidak rusak.
+// Urutan tampilan pakai field terpisah "urutan" (fallback ke "no" kalau belum pernah diisi).
+async function moveAdminItem(deptKey, bulan, no, direction){
+  const dept = state.depts[deptKey];
+  const items = dept.items.filter(it=>it.bulan===bulan).sort((a,b)=>(a.urutan??a.no)-(b.urutan??b.no));
+
+  // Normalisasi: pastikan semua poin di bulan ini punya "urutan" eksplisit sesuai posisi saat ini,
+  // supaya proses tukar-menukar berikutnya konsisten.
+  items.forEach((it, idx)=>{ it.urutan = idx; });
+
+  const curIdx = items.findIndex(it=>it.no===no);
+  const targetIdx = curIdx + direction;
+  if(curIdx === -1 || targetIdx < 0 || targetIdx >= items.length) return;
+
+  const tmp = items[curIdx].urutan;
+  items[curIdx].urutan = items[targetIdx].urutan;
+  items[targetIdx].urutan = tmp;
+
+  await saveDepts();
+  renderAdmin();
 }
 
 function renderAdminEditForm(deptKey, it){
@@ -2530,6 +2580,17 @@ function bindAdminEvents(deptKey){
   document.querySelectorAll('[data-canceleditno]').forEach(b=>{
     b.addEventListener('click', ()=>{ state.adminEditingNo = null; renderAdmin(); });
   });
+  document.querySelectorAll('[data-moveup]').forEach(b=>{
+    b.addEventListener('click', async ()=>{
+      await moveAdminItem(deptKey, Number(b.dataset.bulan), Number(b.dataset.moveup), -1);
+    });
+  });
+  document.querySelectorAll('[data-movedown]').forEach(b=>{
+    b.addEventListener('click', async ()=>{
+      await moveAdminItem(deptKey, Number(b.dataset.bulan), Number(b.dataset.movedown), 1);
+    });
+  });
+
   document.querySelectorAll('[data-savenno]').forEach(b=>{
     b.addEventListener('click', async ()=>{
       const no = Number(b.dataset.savenno);
