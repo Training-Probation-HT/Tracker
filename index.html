@@ -287,6 +287,8 @@
     font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:20px; white-space:nowrap;
   }
   .tt-badge.lulus{ background:#3E7D53; color:#fff; }
+  .tt-badge.selesai{ background:#1F5C4A; color:#fff; }
+  .tt-badge.terlambat{ background:#E8A33D; color:#fff; }
   .tt-badge.tambahan{ background:#F1D19B; color:#5A3E0B; }
   .tt-badge.tidak{ background:var(--terracotta); color:#fff; }
   .tt-badge.jalan{ background:#EDEDED; color:#555; }
@@ -1152,37 +1154,123 @@ function computePraktikPct(empId, deptKey){
   return Math.round((lulusCount/3)*100);
 }
 
-// Deadline probation = tanggal mulai kerja + 3 bulan + 1 minggu.
-function calcProbationDeadline(startDateStr){
+// Cek checklist leader udah 100% "Sudah Dikuasai" semua poin (non-final),
+// TANPA syarat validator — ini yang bikin status "Selesai" beda dari "Lulus".
+function leaderChecklistFullyDone(empId, deptKey){
+  const stats = computeStats(empId, deptKey);
+  const totalItem = stats.byBulan[1].total + stats.byBulan[2].total + stats.byBulan[3].total;
+  return totalItem > 0 && stats.overallPct === 100;
+}
+
+// Tanggal aktivitas paling baru buat karyawan ini: dari checklist yang diisi leader,
+// validasi per-item, submit validasi bulanan, atau submit assessment e-learning.
+// Dipakai buat aturan "gak ada progress lebih dari 1 bulan" = Tidak Lulus.
+function getLastProgressDate(empId, deptKey, teori){
+  const prog = state.progress[empId] || {};
+  let dates = [];
+  deptItemsFor(deptKey).forEach(it=>{
+    const v = prog['item_'+it.no];
+    if(v && v.tanggal) dates.push(v.tanggal);
+    const vi = prog['val_item_'+it.no];
+    if(vi && vi.tanggal) dates.push(vi.tanggal);
+  });
+  [1,2,3].forEach(b=>{
+    const vv = prog['validasi_bulan'+b];
+    if(vv && vv.tanggal) dates.push(vv.tanggal);
+  });
+  if(teori){
+    [teori.tgl1, teori.tgl2, teori.tgl3].forEach(t=>{ if(t) dates.push(t); });
+  }
+  if(dates.length === 0) return null;
+  return dates.reduce((max,d)=> (new Date(d) > new Date(max) ? d : max));
+}
+
+// Deadline 3 bulan persis dari tanggal join (tanpa toleransi).
+function calcDeadline3Bulan(startDateStr){
   if(!startDateStr) return null;
   const d = new Date(startDateStr+'T00:00:00');
   if(isNaN(d.getTime())) return null;
   d.setMonth(d.getMonth()+3);
-  d.setDate(d.getDate()+7);
   return d;
 }
 
-// Status akhir probation, gabungan teori (e-learning) + praktik (Tracker) + deadline.
-// Pilihan manual "Kesimpulan Akhir" leader TIDAK dipakai lagi untuk menentukan ini —
-// murni otomatis dari data.
-function computeProbationStatus(emp){
+// Deadline 3 bulan + toleransi 2 minggu — lewat ini tanpa selesai = Tidak Lulus.
+function calcDeadlineGrace(startDateStr){
+  const d = calcDeadline3Bulan(startDateStr);
+  if(!d) return null;
+  const d2 = new Date(d);
+  d2.setDate(d2.getDate()+14);
+  return d2;
+}
+
+// Status akhir "Status Belajar", gabungan teori (e-learning) + praktik (checklist leader)
+// + validasi + tanggal join, sesuai 5 aturan:
+// 1. Masa belajar = 3 bulan dari tanggal join.
+// 2. "Selesai" = 3 assessment lulus (skor>=70) semua + checklist leader semua "Sudah Dikuasai".
+// 3. "Terlambat" = lewat 3 bulan, belum "Selesai" (toleransi maksimal 2 minggu).
+// 4. "Lulus" = semua poin sudah tervalidasi (Valid) oleh validator.
+// 5. "Tidak Lulus" = ada assessment skor<70, ATAU lebih dari 3bulan+2minggu belum selesai,
+//    ATAU gak ada progress lebih dari 1 bulan.
+function computeStatusBelajar(emp){
   const teori = getTeoriInfo(emp.name);
-  if(!teori){
-    return { kind:'warn', label:'Data e-learning tidak ditemukan', teoriPct:null, praktikPct: computePraktikPct(emp.id, emp.department) };
+  const deptKey = emp.department;
+  const praktikPct = computePraktikPct(emp.id, deptKey); // sudah termasuk syarat tervalidasi "Valid" per bulan
+  const praktikDone = leaderChecklistFullyDone(emp.id, deptKey);
+  const teoriDone = !!teori && teori.b1 && teori.b2 && teori.b3;
+  const sudahSelesaiBelajar = teoriDone && praktikDone;
+
+  // Tidak Lulus — salah satu assessment sudah dikerjakan tapi skornya di bawah 70
+  const adaAssessmentGagal = !!teori && [teori.raw1, teori.raw2, teori.raw3].some(s => s === 'BELUM LULUS');
+  if(adaAssessmentGagal){
+    return { kind:'tidak', label:'Tidak Lulus', teoriPct: teori.pct, praktikPct };
   }
-  const praktikPct = computePraktikPct(emp.id, emp.department);
+
+  // Tidak Lulus — lebih dari 1 bulan tidak ada progress sama sekali (dan belum selesai)
+  if(!sudahSelesaiBelajar){
+    const lastDate = getLastProgressDate(emp.id, deptKey, teori);
+    const anchor = lastDate || emp.startDate;
+    if(anchor){
+      const batasStagnan = new Date(anchor+'T00:00:00');
+      if(!isNaN(batasStagnan.getTime())){
+        batasStagnan.setMonth(batasStagnan.getMonth()+1);
+        if(new Date() > batasStagnan){
+          return { kind:'tidak', label:'Tidak Lulus', teoriPct: teori?teori.pct:null, praktikPct };
+        }
+      }
+    }
+  }
+
+  // Tidak Lulus — lewat 3 bulan + toleransi 2 minggu, masih belum selesai
+  if(!sudahSelesaiBelajar){
+    const deadlineGrace = calcDeadlineGrace(emp.startDate);
+    if(deadlineGrace && new Date() > deadlineGrace){
+      return { kind:'tidak', label:'Tidak Lulus', teoriPct: teori?teori.pct:null, praktikPct };
+    }
+  }
+
+  if(!teori){
+    return { kind:'warn', label:'Data e-learning tidak ditemukan', teoriPct:null, praktikPct };
+  }
+
   const teoriPct = teori.pct;
 
-  if(teoriPct === 100 && praktikPct === 100){
-    return { kind:'lulus', label:'Lulus Probation', teoriPct, praktikPct };
+  // Lulus — assessment semua lulus DAN semua poin praktik sudah tervalidasi Valid oleh validator
+  if(teoriDone && praktikPct === 100){
+    return { kind:'lulus', label:'Lulus', teoriPct, praktikPct };
   }
 
-  const deadline = calcProbationDeadline(emp.startDate);
-  const lewatDeadline = deadline ? (new Date() > deadline) : false;
-
-  if(lewatDeadline){
-    return { kind:'tidak', label:'Tidak Lulus', teoriPct, praktikPct };
+  // Selesai — assessment semua lulus DAN checklist leader semua "Sudah Dikuasai",
+  // tapi masih nunggu validator (belum tentu semua "Valid")
+  if(sudahSelesaiBelajar){
+    return { kind:'selesai', label:'Selesai', teoriPct, praktikPct };
   }
+
+  // Terlambat — sudah lewat 3 bulan sejak join date (masih dalam toleransi 2 minggu)
+  const deadline3bln = calcDeadline3Bulan(emp.startDate);
+  if(deadline3bln && new Date() > deadline3bln){
+    return { kind:'terlambat', label:'Terlambat', teoriPct, praktikPct };
+  }
+
   return { kind:'proses', label:'Proses Belajar', teoriPct, praktikPct };
 }
 function isBulanSubmitted(prog, bulan){
@@ -1523,7 +1611,7 @@ function renderLeader(){
   if(state.outlet && state.dept){
     const filtered = state.employees.filter(e=>e.outlet===state.outlet && e.department===state.dept);
     html += `<div class="tt-card">
-      <span class="tt-label">Nama Karyawan Probation</span>
+      <span class="tt-label">Nama Karyawan Baru</span>
       <select id="empSelect" class="tt-input">
         <option value="">-- Pilih Karyawan --</option>
         ${filtered.map(e=>{
@@ -1845,7 +1933,7 @@ function renderValidator(){
   if(state.outlet && state.dept){
     const filtered = state.employees.filter(e=>e.outlet===state.outlet && e.department===state.dept);
     html += `<div class="tt-card">
-      <span class="tt-label">Nama Karyawan Probation</span>
+      <span class="tt-label">Nama Karyawan Baru</span>
       <select id="empSelect" class="tt-input">
         <option value="">-- Pilih Karyawan --</option>
         ${filtered.map(e=>`<option value="${e.id}" ${state.currentEmployeeId===e.id?'selected':''}>${esc(e.name)}</option>`).join('')}
@@ -2160,7 +2248,7 @@ async function renderDashboard(){
   for(const e of list){ await loadProgress(e.id); }
 
   const totalEmp = list.length;
-  const lulusCount = list.filter(e=>computeProbationStatus(e).kind==='lulus').length;
+  const lulusCount = list.filter(e=>computeStatusBelajar(e).kind==='lulus').length;
   const berjalanCount = totalEmp - lulusCount;
 
   const outletGroups = {};
@@ -2171,14 +2259,14 @@ async function renderDashboard(){
     emps.forEach(e=>{
       const st = computeStats(e.id, e.department);
       sumPct += st.overallPct;
-      if(computeProbationStatus(e).kind==='lulus') lulus++;
+      if(computeStatusBelajar(e).kind==='lulus') lulus++;
     });
     return { outlet:o, avgPct: emps.length ? Math.round(sumPct/emps.length) : 0, total: emps.length, lulus };
   }).sort((a,b)=> a.avgPct - b.avgPct || a.outlet.localeCompare(b.outlet));
 
   if(outletStats.length){
     html += `<div class="tt-card">
-      <span class="tt-label">Penyelesaian Probation per Outlet</span>
+      <span class="tt-label">Penyelesaian Checklist Karyawan Baru per Outlet</span>
       <div class="tt-outlet-stats">
         ${outletStats.map(os=>{
           const fillColor = os.avgPct < 40 ? 'var(--terracotta)' : os.avgPct >= 100 ? '#3E7D53' : '#C98A3E';
@@ -2204,13 +2292,13 @@ async function renderDashboard(){
     html += `<div class="tt-card" style="padding:0; overflow-x:auto;">
       <table class="tt-table">
         <thead><tr>
-          <th>Karyawan</th><th>Outlet</th><th>Section</th><th>Theory (E-Learning)</th><th>Practice (Leader Checklist)</th><th>Tahap Saat Ini</th><th>Status Probation</th><th>Validasi</th>
+          <th>Karyawan</th><th>Outlet</th><th>Section</th><th>Theory (E-Learning)</th><th>Practice (Leader Checklist)</th><th>Tahap Saat Ini</th><th>Status Belajar</th><th>Validasi</th>
         </tr></thead>
         <tbody>`;
     list.forEach(e=>{
       const st = computeStats(e.id, e.department);
-      const probation = computeProbationStatus(e);
-      const badgeClassMap = { lulus:'lulus', tidak:'tidak', proses:'jalan', warn:'warn' };
+      const probation = computeStatusBelajar(e);
+      const badgeClassMap = { lulus:'lulus', selesai:'selesai', terlambat:'terlambat', tidak:'tidak', proses:'jalan', warn:'warn' };
       const badge = `<span class="tt-badge ${badgeClassMap[probation.kind]}">${esc(probation.label)}</span>`;
       const elCell = probation.teoriPct === null
         ? '<span style="color:var(--sage); font-style:italic; font-size:11.5px;">tidak ditemukan</span>'
