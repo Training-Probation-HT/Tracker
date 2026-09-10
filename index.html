@@ -841,6 +841,24 @@ async function savePanduan(){
   catch(e){ console.error('save panduan failed', e); showToast('Gagal simpan panduan. Cek koneksi.'); throw e; }
 }
 
+// Ambil checklist_config PALING BARU dari server, timpa state.depts lokal dengan itu.
+// Dipanggil tepat sebelum admin nambah/edit/hapus/pindah poin — supaya perubahan
+// selalu ditumpuk di atas data terbaru, bukan data lama yang mungkin sudah nyangkut
+// di browser sejak halaman Admin dibuka. Ini yang mencegah kasus "poin ketimpa"
+// kalau ada jeda waktu antara buka halaman Admin dengan waktu klik simpan.
+async function refreshDeptsFromServer(){
+  try{
+    const fetched = await kvFetchAll();
+    const cfgRaw = fetched.data['checklist_config'];
+    if(cfgRaw) state.depts = JSON.parse(cfgRaw);
+  }catch(e){
+    console.error('Gagal ambil checklist_config terbaru, pakai data yang ada di browser', e);
+    // Kalau gagal (misal lagi offline), tetap lanjut pakai state.depts yang ada
+    // daripada memblokir aksi user sepenuhnya — lebih baik dari sebelumnya,
+    // walau tidak 100% menghilangkan resiko di kondisi ini.
+  }
+}
+
 async function saveDepts(){
   try{ await kvSet('checklist_config', JSON.stringify(state.depts)); }
   catch(e){ console.error('save checklist config failed', e); showToast('Gagal simpan. Cek koneksi.'); throw e; }
@@ -2410,6 +2428,25 @@ function renderAdmin(){
   </div>`;
 
   html += `<div class="tt-card">
+    <span class="tt-label">Export / Import Checklist (Semua Departemen)</span>
+    <div style="font-size:12px; color:var(--sage); margin-top:2px; margin-bottom:8px;">
+      Khusus buat susunan poin pembelajaran (bukan data karyawan/akun). Pakai ini kalau mau
+      ubah checklist besar-besaran sekaligus (lebih aman & cepat daripada edit satu-satu poin
+      lewat form di bawah) — misalnya waktu mengganti master checklist dari file terpisah.
+      "Poin lama yang nomornya masih dipakai" otomatis dijaga, jadi histori karyawan yang sudah
+      diisi tidak nyasar ke poin lain.
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+      <button class="tt-btn tt-btn-ghost" id="exportChecklistBtn">Export Checklist Sekarang (JSON)</button>
+    </div>
+    <div class="tt-field">
+      <span class="tt-label">Import (timpa checklist dari JSON)</span>
+      <textarea id="importChecklistArea" class="tt-input" rows="4" placeholder="Tempel JSON hasil Export di sini" style="width:100%; resize:vertical; font-family:monospace; font-size:11.5px;"></textarea>
+    </div>
+    <button class="tt-btn tt-btn-primary" id="importChecklistBtn">Import & Timpa Checklist</button>
+  </div>`;
+
+  html += `<div class="tt-card">
     <span class="tt-label">Panduan Penggunaan (tampil di tab "Panduan")</span>
     <textarea id="panduanTextarea" class="tt-input" rows="6" style="width:100%; resize:vertical; font-family:inherit; margin-top:6px;">${esc(state.panduanText)}</textarea>
     <div style="margin-top:8px;">
@@ -2521,6 +2558,7 @@ function renderAdmin(){
 // karyawan (item_<no>, val_item_<no>), jadi harus tetap stabil biar data lama tidak rusak.
 // Urutan tampilan pakai field terpisah "urutan" (fallback ke "no" kalau belum pernah diisi).
 async function moveAdminItem(deptKey, bulan, no, direction){
+  await refreshDeptsFromServer();
   const dept = state.depts[deptKey];
   const items = dept.items.filter(it=>it.bulan===bulan).sort((a,b)=>(a.urutan??a.no)-(b.urutan??b.no));
 
@@ -2599,6 +2637,55 @@ function bindAdminEvents(deptKey){
     try{ await exportBackupJson(); showToast('Backup diunduh'); }
     catch(e){ console.error(e); showToast('Gagal export'); }
     finally{ exportJsonBtn.disabled = false; exportJsonBtn.textContent = 'Export Backup Lengkap (JSON)'; }
+  });
+
+  const exportChecklistBtn = document.getElementById('exportChecklistBtn');
+  if(exportChecklistBtn) exportChecklistBtn.addEventListener('click', async ()=>{
+    exportChecklistBtn.disabled = true; exportChecklistBtn.textContent = 'Menyiapkan...';
+    try{
+      await refreshDeptsFromServer(); // pastikan yang di-export benar-benar versi terbaru
+      const json = JSON.stringify(state.depts, null, 2);
+      const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+      downloadFile('checklist_config_'+stamp+'.json', json, 'application/json');
+      showToast('Checklist diexport');
+    }catch(e){ console.error(e); showToast('Gagal export checklist'); }
+    finally{ exportChecklistBtn.disabled = false; exportChecklistBtn.textContent = 'Export Checklist Sekarang (JSON)'; }
+  });
+
+  const importChecklistBtn = document.getElementById('importChecklistBtn');
+  if(importChecklistBtn) importChecklistBtn.addEventListener('click', async ()=>{
+    const area = document.getElementById('importChecklistArea');
+    const raw = area.value.trim();
+    if(!raw){ showToast('Tempel JSON checklist dulu'); return; }
+    let parsed;
+    try{ parsed = JSON.parse(raw); }
+    catch(e){ showToast('JSON tidak valid — cek lagi teksnya'); return; }
+
+    const deptKeys = Object.keys(parsed);
+    const looksValid = deptKeys.length > 0 && deptKeys.every(k=>{
+      const d = parsed[k];
+      return d && typeof d.label === 'string' && Array.isArray(d.items);
+    });
+    if(!looksValid){
+      showToast('Struktur JSON tidak sesuai format checklist. Import dibatalkan.');
+      return;
+    }
+
+    if(!confirm('Timpa SELURUH checklist dengan isi JSON ini? Pastikan ini sudah benar (sudah di-review) — aksi ini langsung berlaku ke semua leader. Data karyawan/akun tidak ikut kesentuh, cuma checklist poin ini aja.')) return;
+
+    importChecklistBtn.disabled = true; importChecklistBtn.textContent = 'Mengimport...';
+    try{
+      state.depts = parsed;
+      await saveDepts();
+      area.value = '';
+      renderAdmin();
+      showToast('Checklist berhasil diimport');
+    }catch(e){
+      console.error(e);
+      showToast('Gagal import. Cek koneksi & coba lagi.');
+    }finally{
+      importChecklistBtn.disabled = false; importChecklistBtn.textContent = 'Import & Timpa Checklist';
+    }
   });
 
   const exportCsvBtn = document.getElementById('exportCsvBtn');
@@ -2719,13 +2806,17 @@ function bindAdminEvents(deptKey){
     b.addEventListener('click', async ()=>{
       const no = Number(b.dataset.savenno);
       const form = b.closest('.tt-admin-edit-form');
+      const kode = form.querySelector('.adm-kode').value.trim();
+      const kat = form.querySelector('.adm-kat').value.trim();
+      const bulan = Number(form.querySelector('.adm-bulan').value);
+      const point = form.querySelector('.adm-point').value.trim();
+      const final = form.querySelector('.adm-final').checked;
+
+      await refreshDeptsFromServer();
       const dept = state.depts[deptKey];
       const it = dept.items.find(x=>x.no===no);
-      it.kode = form.querySelector('.adm-kode').value.trim();
-      it.kat = form.querySelector('.adm-kat').value.trim();
-      it.bulan = Number(form.querySelector('.adm-bulan').value);
-      it.point = form.querySelector('.adm-point').value.trim();
-      it.final = form.querySelector('.adm-final').checked;
+      if(!it){ showToast('Poin ini sudah tidak ada (mungkin dihapus dari sesi lain). Muat ulang halaman.'); return; }
+      it.kode = kode; it.kat = kat; it.bulan = bulan; it.point = point; it.final = final;
       await saveDepts();
       state.adminEditingNo = null;
       renderAdmin();
@@ -2742,6 +2833,7 @@ function bindAdminEvents(deptKey){
   document.querySelectorAll('[data-confirmdelno]').forEach(b=>{
     b.addEventListener('click', async ()=>{
       const no = Number(b.dataset.confirmdelno);
+      await refreshDeptsFromServer();
       const dept = state.depts[deptKey];
       dept.items = dept.items.filter(x=>x.no!==no);
       await saveDepts();
@@ -2766,6 +2858,8 @@ function bindAdminEvents(deptKey){
       const kode = form.querySelector('.add-kode').value.trim() || '-';
       const kat = form.querySelector('.add-kat').value.trim() || '-';
       const final = form.querySelector('.add-final').checked;
+
+      await refreshDeptsFromServer();
       const dept = state.depts[deptKey];
       const newNo = dept.nextNo || (dept.items.reduce((m,it)=>Math.max(m,it.no),0)+1);
       dept.items.push({ no:newNo, bulan, kode, kat, point, final });
