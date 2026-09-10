@@ -1864,9 +1864,13 @@ function bindChecklistEvents(empId){
         if(!state.progress[empId][key].paraf && state.leaderName){
           state.progress[empId][key].paraf = state.leaderName;
         }
-        await saveProgress(empId, key);
-        renderChecklist();
-        showToast();
+        renderChecklist(); // update tampilan dulu (instan), baru simpan ke server di belakang layar
+        try{
+          await saveProgress(empId, key);
+          showToast();
+        }catch(e){
+          // saveProgress sudah nampilin toast error sendiri kalau gagal
+        }
       });
     });
 
@@ -2142,9 +2146,13 @@ function bindValidationEvents(empId){
         state.progress[empId] = state.progress[empId] || {};
         state.progress[empId][key] = state.progress[empId][key] || {};
         state.progress[empId][key].valid = pill.dataset.val;
-        await saveProgress(empId, key);
-        renderValidationPanel();
-        showToast();
+        renderValidationPanel(); // update tampilan dulu (instan), baru simpan ke server di belakang layar
+        try{
+          await saveProgress(empId, key);
+          showToast();
+        }catch(e){
+          // saveProgress sudah nampilin toast error sendiri kalau gagal
+        }
       });
     });
   });
