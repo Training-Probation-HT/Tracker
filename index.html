@@ -629,7 +629,7 @@ let state = {
   currentEmployeeId: null,
   employees: [],
   progress: {},          // employeeId -> {item_no: {...}}
-  openBulan: {1:true,2:false,3:false},
+  openBulan: {1:true,2:true,3:true},
   leaderName: "",
   dashFilterOutlet: "",
   dashFilterDept: "",
@@ -1673,7 +1673,7 @@ function bindLeaderEvents(){
   if(oi) oi.addEventListener('change', e=>{ state.outlet = e.target.value; state.currentEmployeeId=null; render(); });
 
   document.querySelectorAll('.tt-dept-btn').forEach(b=>{
-    b.addEventListener('click', ()=>{ state.dept = b.dataset.dept; state.currentEmployeeId=null; state.openBulan={1:true,2:false,3:false}; render(); });
+    b.addEventListener('click', ()=>{ state.dept = b.dataset.dept; state.currentEmployeeId=null; state.openBulan={1:true,2:true,3:true}; render(); });
   });
 
   const empSelect = document.getElementById('empSelect');
