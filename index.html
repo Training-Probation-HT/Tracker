@@ -683,6 +683,16 @@ async function kvFetchAll(){
   return { data: json.data || {}, elearning: json.elearning || {}, karyawanSheet: json.karyawanSheet || [] };
 }
 
+// Ambil progress SATU karyawan aja dari server (bukan sekaligus semua karyawan).
+// Dipanggil lewat loadProgress() — supaya buka halaman jadi jauh lebih ringan,
+// terutama begitu jumlah karyawan/outlet makin banyak ke depannya.
+async function fetchProgressFromServer(empId){
+  const res = await fetch(TRACKER_API_URL + '?empId=' + encodeURIComponent(empId));
+  const json = await res.json();
+  if(!json.ok) throw new Error(json.error || 'Gagal memuat progres karyawan');
+  return json.progress ? JSON.parse(json.progress) : {};
+}
+
 // Nama dinormalisasi (trim + huruf kecil + spasi dirapikan) buat cocokin
 // entri dari sheet "Karyawan" (hasil auto-sync E-Learning) dengan state.employees.
 function normalizeNamaTT(s){ return String(s||'').trim().toLowerCase().replace(/\s+/g,' '); }
@@ -822,7 +832,9 @@ async function loadAll(){
     state.panduanText = pdRaw || "Panduan belum diisi oleh Admin.";
   }catch(e){ state.panduanText = "Panduan belum diisi oleh Admin."; }
 
-  // progress semua karyawan sudah ikut terbawa dalam satu kali fetch di atas
+  // Progress karyawan SENGAJA tidak lagi dikirim server dalam muatan besar ini
+  // (lihat loadProgress/fetchProgressFromServer) — baris di bawah cuma jaga-jaga
+  // kalau suatu saat ada progress_* yang tetap ikut kebawa, tetap kepakai dengan benar.
   state.progress = {};
   Object.keys(kvData).forEach(k=>{
     if(k.indexOf('progress_')===0){
@@ -869,10 +881,17 @@ async function saveEmployees(){
   catch(e){ console.error('save employees failed', e); showToast('Gagal simpan karyawan. Cek koneksi.'); throw e; }
 }
 
+// Progress SENGAJA tidak lagi ikut kebawa sekaligus waktu loadAll() — supaya buka
+// halaman jadi ringan, tiap karyawan progress-nya baru diambil pas dia beneran
+// dipilih/dilihat. Kalau sudah pernah diambil di sesi ini, tidak diambil ulang.
 async function loadProgress(empId){
-  // seluruh progress sudah dimuat sekaligus waktu loadAll(); ini cuma fallback jaga-jaga
   if(state.progress[empId]) return state.progress[empId];
-  state.progress[empId] = {};
+  try{
+    state.progress[empId] = await fetchProgressFromServer(empId);
+  }catch(e){
+    console.error('Gagal ambil progress karyawan', empId, e);
+    state.progress[empId] = state.progress[empId] || {};
+  }
   return state.progress[empId];
 }
 
@@ -1534,7 +1553,7 @@ function todayStamp(){
 }
 
 async function exportBackupJson(){
-  for(const e of state.employees){ await loadProgress(e.id); }
+  await preloadProgressFor(state.employees);
   const backup = {
     exportedAt: new Date().toISOString(),
     depts: state.depts,
@@ -1555,7 +1574,7 @@ function csvEscape(v){
 }
 
 async function exportSummaryCsv(){
-  for(const e of state.employees){ await loadProgress(e.id); }
+  await preloadProgressFor(state.employees);
   const header = ['Nama Karyawan','Outlet','Departemen','Tanggal Mulai','Bulan 1 (%)','Bulan 2 (%)','Bulan 3 (%)','Total (%)','Status Akhir'];
   const rows = state.employees.map(e=>{
     const st = computeStats(e.id, e.department);
@@ -1663,6 +1682,18 @@ function renderLeader(){
   }
 }
 
+// Preload progress buat sekumpulan karyawan (dipakai pas outlet/departemen dipilih,
+// atau pas Dashboard nampilin banyak karyawan sekaligus). Diambil per-kelompok kecil
+// (8 karyawan sekaligus), bukan satu-satu (lambat) ATAU semuanya sekaligus dalam 1
+// waktu (bisa bikin server Apps Script keteteran kalau karyawannya udah ratusan).
+async function preloadProgressFor(empList){
+  const BATCH_SIZE = 8;
+  for(let i=0; i<empList.length; i+=BATCH_SIZE){
+    const batch = empList.slice(i, i+BATCH_SIZE);
+    await Promise.all(batch.map(e=>loadProgress(e.id)));
+  }
+}
+
 function bindLeaderEvents(){
   const logoutBtn = document.getElementById('logoutBtn');
   if(logoutBtn) logoutBtn.addEventListener('click', ()=>{
@@ -1670,10 +1701,21 @@ function bindLeaderEvents(){
   });
 
   const oi = document.getElementById('outletInput');
-  if(oi) oi.addEventListener('change', e=>{ state.outlet = e.target.value; state.currentEmployeeId=null; render(); });
+  if(oi) oi.addEventListener('change', async e=>{
+    state.outlet = e.target.value;
+    state.currentEmployeeId=null;
+    await preloadProgressFor(state.employees.filter(emp=>emp.outlet===state.outlet && emp.department===state.dept));
+    render();
+  });
 
   document.querySelectorAll('.tt-dept-btn').forEach(b=>{
-    b.addEventListener('click', ()=>{ state.dept = b.dataset.dept; state.currentEmployeeId=null; state.openBulan={1:true,2:true,3:true}; render(); });
+    b.addEventListener('click', async ()=>{
+      state.dept = b.dataset.dept;
+      state.currentEmployeeId=null;
+      state.openBulan={1:true,2:true,3:true};
+      await preloadProgressFor(state.employees.filter(emp=>emp.outlet===state.outlet && emp.department===state.dept));
+      render();
+    });
   });
 
   const empSelect = document.getElementById('empSelect');
@@ -2271,7 +2313,10 @@ async function renderDashboard(){
     return true;
   });
 
-  for(const e of list){ await loadProgress(e.id); }
+  if(list.length > 8){
+    root.innerHTML = html + `<div class="tt-empty">Memuat data ${list.length} karyawan...</div>`;
+  }
+  await preloadProgressFor(list);
 
   const totalEmp = list.length;
   const lulusCount = list.filter(e=>computeStatusBelajar(e).kind==='lulus').length;
