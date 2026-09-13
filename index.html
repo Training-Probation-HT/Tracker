@@ -639,6 +639,7 @@ let state = {
   loaded: false,
   depts: null,          // config checklist aktif (bisa diedit dari tab Admin)
   leaderAccounts: [],    // akun leader terdaftar: {email, name, passwordHash, createdAt}
+  deletedEmployeeNames: [], // nama (dinormalisasi) karyawan yang pernah dihapus manual — dicegah muncul lagi lewat sinkron E-Learning
   elearning: {},         // map nama (dinormalisasi) -> {b1,b2,b3,pct} dari spreadsheet e-learning (read-only)
   validatorAccounts: [], // akun validator terdaftar: {email, name, passwordHash, createdAt}
   session: null,         // {email, name, role: 'leader'|'validator'}
@@ -723,6 +724,17 @@ async function kvSet(key, value){
   return json;
 }
 
+async function kvDelete(key){
+  const res = await fetch(TRACKER_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ type: 'kv_delete', key: key })
+  });
+  const json = await res.json();
+  if(!json.ok) throw new Error(json.error || 'Gagal menghapus data');
+  return json;
+}
+
 // Upload foto ke Google Drive lewat Apps Script, balikin URL pendek (bukan base64 mentah)
 // supaya tidak melebihi batas 50.000 karakter per sel Google Sheet.
 async function uploadFotoToServer(dataUrl, employeeName, bulan){
@@ -793,17 +805,26 @@ async function loadAll(){
     state.employees = empRaw ? JSON.parse(empRaw) : [];
   }catch(e){ state.employees = []; }
 
+  try{
+    const delRaw = kvData['deleted_employee_names'];
+    state.deletedEmployeeNames = delRaw ? JSON.parse(delRaw) : [];
+  }catch(e){ state.deletedEmployeeNames = []; }
+
   // Sinkron otomatis: karyawan yang baru daftar di E-Learning (tercatat di sheet
   // "Karyawan") tapi belum ada di daftar ini, dimasukkan sekarang. Dicocokkan
   // berdasarkan nama (dirapikan dulu) supaya tidak dobel kalau leader sudah
-  // sempat menambahkan manual duluan dengan nama yang sama.
+  // sempat menambahkan manual duluan dengan nama yang sama. Nama yang pernah
+  // dihapus manual oleh Admin (state.deletedEmployeeNames) SENGAJA dilewati di
+  // sini juga — biar tidak otomatis "hidup lagi" gara-gara masih tercatat di
+  // sheet "Karyawan" (log lama, tidak pernah dihapus baris-barisnya).
   try{
     const deptKeyMap = { kasir:'kasir', server:'server', bar:'bar', kitchen:'kitchen' };
     const existingNames = new Set(state.employees.map(e => normalizeNamaTT(e.name)));
+    const blockedNames = new Set(state.deletedEmployeeNames);
     let adaTambahan = false;
     karyawanSheetRows.forEach(row => {
       const key = normalizeNamaTT(row.nama);
-      if(!key || existingNames.has(key)) return;
+      if(!key || existingNames.has(key) || blockedNames.has(key)) return;
       const deptKey = deptKeyMap[normalizeNamaTT(row.departemen)];
       if(!deptKey) return; // departemen tidak dikenali (mis. ASM/SM/Others), lewati
       state.employees.push({
@@ -909,6 +930,26 @@ async function refreshDeptsFromServer(){
   }
 }
 
+// Ambil ulang daftar akun leader & validator PALING BARU dari server, tepat
+// sebelum ada yang daftar baru / dihapus / direset passwordnya. Ini mencegah
+// kejadian "banyak akun leader hilang" — itu terjadi karena daftar akun yang
+// tersimpan di browser sempat gagal/tidak lengkap ke-load (misal gara-gara
+// gangguan jaringan sesaat), lalu ada 1 aksi (daftar baru/hapus/reset) yang
+// menyimpan balik daftar yang TIDAK LENGKAP itu, menimpa daftar asli di server.
+async function refreshAccountsFromServer(){
+  try{
+    const fetched = await kvFetchAll();
+    const laRaw = fetched.data['leader_accounts'];
+    const vaRaw = fetched.data['validator_accounts'];
+    const otRaw = fetched.data['outlets_list'];
+    if(laRaw){ try{ state.leaderAccounts = JSON.parse(laRaw); }catch(e){} }
+    if(vaRaw){ try{ state.validatorAccounts = JSON.parse(vaRaw); }catch(e){} }
+    if(otRaw){ try{ state.outlets = JSON.parse(otRaw); }catch(e){} }
+  }catch(e){
+    console.error('Gagal ambil daftar akun terbaru, pakai data yang ada di browser', e);
+  }
+}
+
 async function saveDepts(){
   try{
     const res = await fetch(TRACKER_API_URL, {
@@ -925,6 +966,28 @@ async function saveDepts(){
 async function saveEmployees(){
   try{ await kvSet('employees', JSON.stringify(state.employees)); }
   catch(e){ console.error('save employees failed', e); showToast('Gagal simpan karyawan. Cek koneksi.'); throw e; }
+}
+
+async function saveDeletedEmployeeNames(){
+  try{ await kvSet('deleted_employee_names', JSON.stringify(state.deletedEmployeeNames)); }
+  catch(e){ console.error('save deleted employee names failed', e); }
+}
+
+// Hapus karyawan sepenuhnya dari sistem: keluar dari daftar aktif, progress
+// checklist-nya dibuang, dan namanya dicatat di "blocklist" biar tidak otomatis
+// muncul lagi lewat sinkron E-Learning (lihat catatan di loadAll()).
+async function deleteEmployeeCompletely(empId){
+  const emp = state.employees.find(e=>e.id===empId);
+  if(!emp) return;
+  state.employees = state.employees.filter(e=>e.id!==empId);
+  await saveEmployees();
+  try{ await kvDelete('progress_'+empId); }catch(e){ /* gakpapa kalau memang belum pernah ada progress-nya */ }
+  delete state.progress[empId];
+  state.deletedEmployeeNames = state.deletedEmployeeNames || [];
+  const key = normalizeNamaTT(emp.name);
+  if(!state.deletedEmployeeNames.includes(key)) state.deletedEmployeeNames.push(key);
+  await saveDeletedEmployeeNames();
+  if(state.currentEmployeeId === empId) state.currentEmployeeId = null;
 }
 
 // Progress SENGAJA tidak lagi ikut kebawa sekaligus waktu loadAll() — supaya buka
@@ -1302,16 +1365,25 @@ function computeStatusBelajar(emp){
   const teoriDone = !!teori && teori.b1 && teori.b2 && teori.b3;
   const sudahSelesaiBelajar = teoriDone && praktikDone;
 
+  // Acuan tanggal mulai masa belajar = tanggal karyawan DAFTAR E-LEARNING (sesuai
+  // kesepakatan), BUKAN "Join Date" yang diinput manual leader di Tracker.
+  // SENGAJA TIDAK fallback ke Join Date Tracker sama sekali di sini — kalau
+  // datanya gak ada/gak lengkap, lebih aman anggap "belum bisa dihitung" (jangan
+  // sampai keburu divonis Tidak Lulus/Terlambat gara-gara tanggal yang salah acuan).
+  const startAnchor = (teori && teori.tanggalJoin) ? teori.tanggalJoin : null;
+
   // Tidak Lulus — salah satu assessment sudah dikerjakan tapi skornya di bawah 70
   const adaAssessmentGagal = !!teori && [teori.raw1, teori.raw2, teori.raw3].some(s => s === 'BELUM LULUS');
   if(adaAssessmentGagal){
     return { kind:'tidak', label:'Tidak Lulus', teoriPct: teori.pct, praktikPct };
   }
 
-  // Tidak Lulus — lebih dari 1 bulan tidak ada progress sama sekali (dan belum selesai)
+  // Tidak Lulus — lebih dari 1 bulan tidak ada progress sama sekali (dan belum selesai).
+  // Cuma dicek kalau ada acuan tanggal yang valid (progress terakhir ATAU tanggal daftar
+  // e-learning) — kalau dua-duanya gak ada, jangan divonis apa-apa dulu.
   if(!sudahSelesaiBelajar){
     const lastDate = getLastProgressDate(emp.id, deptKey, teori);
-    const anchor = lastDate || emp.startDate;
+    const anchor = lastDate || startAnchor;
     if(anchor){
       const batasStagnan = new Date(anchor+'T00:00:00');
       if(!isNaN(batasStagnan.getTime())){
@@ -1323,9 +1395,9 @@ function computeStatusBelajar(emp){
     }
   }
 
-  // Tidak Lulus — lewat 3 bulan + toleransi 2 minggu, masih belum selesai
-  if(!sudahSelesaiBelajar){
-    const deadlineGrace = calcDeadlineGrace(emp.startDate);
+  // Tidak Lulus — lewat 3 bulan + toleransi 2 minggu sejak daftar e-learning, masih belum selesai
+  if(!sudahSelesaiBelajar && startAnchor){
+    const deadlineGrace = calcDeadlineGrace(startAnchor);
     if(deadlineGrace && new Date() > deadlineGrace){
       return { kind:'tidak', label:'Tidak Lulus', teoriPct: teori?teori.pct:null, praktikPct };
     }
@@ -1348,10 +1420,13 @@ function computeStatusBelajar(emp){
     return { kind:'selesai', label:'Selesai', teoriPct, praktikPct };
   }
 
-  // Terlambat — sudah lewat 3 bulan sejak join date (masih dalam toleransi 2 minggu)
-  const deadline3bln = calcDeadline3Bulan(emp.startDate);
-  if(deadline3bln && new Date() > deadline3bln){
-    return { kind:'terlambat', label:'Terlambat', teoriPct, praktikPct };
+  // Terlambat — sudah lewat 3 bulan sejak tanggal daftar E-Learning (masih dalam toleransi 2 minggu).
+  // Kalau tanggal daftar e-learningnya gak ada, jangan divonis "Terlambat" — biarkan "Proses Belajar".
+  if(startAnchor){
+    const deadline3bln = calcDeadline3Bulan(startAnchor);
+    if(deadline3bln && new Date() > deadline3bln){
+      return { kind:'terlambat', label:'Terlambat', teoriPct, praktikPct };
+    }
   }
 
   return { kind:'proses', label:'Proses Belajar', teoriPct, praktikPct };
@@ -1529,6 +1604,7 @@ function renderAuth(){
       try{
         const passwordHash = await hashPassword(password);
         const acc = { email, name, passwordHash, createdAt: new Date().toISOString() };
+        await refreshAccountsFromServer();
         if(role === 'validator'){ state.validatorAccounts.push(acc); await saveValidatorAccounts(); }
         else { state.leaderAccounts.push(acc); await saveLeaderAccounts(); }
         setSession(acc, role);
@@ -2557,6 +2633,42 @@ function renderAdmin(){
   </div>`;
 
   html += `<div class="tt-card">
+    <span class="tt-label">Kelola Karyawan (Hapus Data Trial/Salah Input)</span>
+    <div style="font-size:12px; color:var(--sage); margin-top:2px; margin-bottom:8px;">
+      Hapus karyawan yang keliru/cuma percobaan. Ini menghapus karyawan itu dari daftar
+      DAN seluruh progress checklist-nya — tidak bisa dibatalkan. Karyawan yang dihapus
+      di sini juga tidak akan otomatis muncul lagi lewat sinkron E-Learning.
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+      <input type="text" id="adminEmpSearch" class="tt-input" style="flex:1; min-width:160px;" placeholder="Cari nama karyawan..." value="${esc(state.adminEmpSearch||'')}">
+      <select id="adminEmpFilterOutlet" style="min-width:140px;">
+        <option value="">Semua Outlet</option>
+        ${state.outlets.map(o=>`<option value="${esc(o)}" ${state.adminEmpFilterOutlet===o?'selected':''}>${esc(o)}</option>`).join('')}
+      </select>
+    </div>
+    <div id="adminEmpList" style="display:flex; flex-direction:column; gap:6px; max-height:340px; overflow-y:auto;">
+      ${(() => {
+        const q = (state.adminEmpSearch||'').trim().toLowerCase();
+        const filtered = state.employees.filter(e=>{
+          if(state.adminEmpFilterOutlet && e.outlet !== state.adminEmpFilterOutlet) return false;
+          if(q && !e.name.toLowerCase().includes(q)) return false;
+          return true;
+        });
+        if(filtered.length === 0) return '<div style="font-size:12.5px; color:var(--sage);">Tidak ada karyawan yang cocok.</div>';
+        return filtered.map(e=>`<div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 12px; border:1.5px solid var(--line); border-radius:10px;">
+          <div style="min-width:0;">
+            <div style="font-weight:600; font-size:13px; color:var(--ink);">${esc(e.name)}</div>
+            <div style="font-size:11.5px; color:var(--sage);">${esc(e.outlet)} &middot; ${state.depts[e.department]?state.depts[e.department].label:esc(e.department)} &middot; Mulai ${esc(e.startDate||'-')}</div>
+          </div>
+          ${state.adminConfirmDeleteEmpId===e.id
+            ? `<div style="display:flex; gap:6px; flex-shrink:0;"><button class="tt-icon-btn confirm" data-confirmdelemp="${e.id}">Yakin hapus?</button><button class="tt-icon-btn" data-canceldelemp="${e.id}">Batal</button></div>`
+            : `<button class="tt-icon-btn danger" data-delemp="${e.id}" style="flex-shrink:0;">Hapus</button>`}
+        </div>`).join('');
+      })()}
+    </div>
+  </div>`;
+
+  html += `<div class="tt-card">
     <span class="tt-label">Panduan Penggunaan (tampil di tab "Panduan")</span>
     <textarea id="panduanTextarea" class="tt-input" rows="6" style="width:100%; resize:vertical; font-family:inherit; margin-top:6px;">${esc(state.panduanText)}</textarea>
     <div style="margin-top:8px;">
@@ -2798,6 +2910,33 @@ function bindAdminEvents(deptKey){
     }
   });
 
+  const adminEmpSearch = document.getElementById('adminEmpSearch');
+  if(adminEmpSearch) adminEmpSearch.addEventListener('input', e=>{ state.adminEmpSearch = e.target.value; renderAdmin(); });
+
+  const adminEmpFilterOutlet = document.getElementById('adminEmpFilterOutlet');
+  if(adminEmpFilterOutlet) adminEmpFilterOutlet.addEventListener('change', e=>{ state.adminEmpFilterOutlet = e.target.value; renderAdmin(); });
+
+  document.querySelectorAll('[data-delemp]').forEach(b=>{
+    b.addEventListener('click', ()=>{ state.adminConfirmDeleteEmpId = b.dataset.delemp; renderAdmin(); });
+  });
+  document.querySelectorAll('[data-canceldelemp]').forEach(b=>{
+    b.addEventListener('click', ()=>{ state.adminConfirmDeleteEmpId = null; renderAdmin(); });
+  });
+  document.querySelectorAll('[data-confirmdelemp]').forEach(b=>{
+    b.addEventListener('click', async ()=>{
+      const empId = b.dataset.confirmdelemp;
+      try{
+        await deleteEmployeeCompletely(empId);
+        state.adminConfirmDeleteEmpId = null;
+        renderAdmin();
+        showToast('Karyawan dihapus');
+      }catch(e){
+        console.error(e);
+        showToast('Gagal menghapus. Cek koneksi & coba lagi.');
+      }
+    });
+  });
+
   const exportCsvBtn = document.getElementById('exportCsvBtn');
   if(exportCsvBtn) exportCsvBtn.addEventListener('click', async ()=>{
     exportCsvBtn.disabled = true; exportCsvBtn.textContent = 'Menyiapkan...';
@@ -2810,6 +2949,7 @@ function bindAdminEvents(deptKey){
     b.addEventListener('click', async ()=>{
       const email = b.dataset.delleaderacc;
       if(!confirm('Hapus akun ini? Leader harus daftar ulang untuk bisa login lagi.')) return;
+      await refreshAccountsFromServer();
       state.leaderAccounts = state.leaderAccounts.filter(a=>a.email!==email);
       await saveLeaderAccounts();
       renderAdmin();
@@ -2820,11 +2960,13 @@ function bindAdminEvents(deptKey){
   document.querySelectorAll('[data-resetleaderacc]').forEach(b=>{
     b.addEventListener('click', async ()=>{
       const email = b.dataset.resetleaderacc;
-      const acc = state.leaderAccounts.find(a=>a.email===email);
-      if(!acc) return;
-      const newPass = prompt('Password baru untuk '+acc.name+' (minimal 6 karakter):');
+      const accBefore = state.leaderAccounts.find(a=>a.email===email);
+      const newPass = prompt('Password baru untuk '+(accBefore?accBefore.name:email)+' (minimal 6 karakter):');
       if(newPass === null) return;
       if(newPass.length < 6){ showToast('Password minimal 6 karakter'); return; }
+      await refreshAccountsFromServer();
+      const acc = state.leaderAccounts.find(a=>a.email===email);
+      if(!acc){ showToast('Akun ini sudah tidak ada (mungkin dihapus dari sesi lain).'); renderAdmin(); return; }
       acc.passwordHash = await hashPassword(newPass);
       await saveLeaderAccounts();
       showToast('Password '+acc.name+' berhasil direset');
@@ -2836,6 +2978,7 @@ function bindAdminEvents(deptKey){
     const input = document.getElementById('newOutletInput');
     const name = input.value.trim();
     if(!name){ showToast('Nama outlet wajib diisi'); return; }
+    await refreshAccountsFromServer();
     if(state.outlets.includes(name)){ showToast('Outlet sudah ada'); return; }
     state.outlets.push(name);
     await saveOutlets();
@@ -2844,7 +2987,9 @@ function bindAdminEvents(deptKey){
   });
   document.querySelectorAll('[data-deloutlet]').forEach(b=>{
     b.addEventListener('click', async ()=>{
-      state.outlets = state.outlets.filter(o=>o!==b.dataset.deloutlet);
+      const name = b.dataset.deloutlet;
+      await refreshAccountsFromServer();
+      state.outlets = state.outlets.filter(o=>o!==name);
       await saveOutlets();
       renderAdmin();
       showToast('Outlet dihapus');
@@ -2855,6 +3000,7 @@ function bindAdminEvents(deptKey){
     b.addEventListener('click', async ()=>{
       const email = b.dataset.delvalidatoracc;
       if(!confirm('Hapus akun validator ini? Validator harus daftar ulang untuk bisa login lagi.')) return;
+      await refreshAccountsFromServer();
       state.validatorAccounts = state.validatorAccounts.filter(a=>a.email!==email);
       await saveValidatorAccounts();
       renderAdmin();
@@ -2865,11 +3011,13 @@ function bindAdminEvents(deptKey){
   document.querySelectorAll('[data-resetvalidatoracc]').forEach(b=>{
     b.addEventListener('click', async ()=>{
       const email = b.dataset.resetvalidatoracc;
-      const acc = state.validatorAccounts.find(a=>a.email===email);
-      if(!acc) return;
-      const newPass = prompt('Password baru untuk '+acc.name+' (minimal 6 karakter):');
+      const accBefore = state.validatorAccounts.find(a=>a.email===email);
+      const newPass = prompt('Password baru untuk '+(accBefore?accBefore.name:email)+' (minimal 6 karakter):');
       if(newPass === null) return;
       if(newPass.length < 6){ showToast('Password minimal 6 karakter'); return; }
+      await refreshAccountsFromServer();
+      const acc = state.validatorAccounts.find(a=>a.email===email);
+      if(!acc){ showToast('Akun ini sudah tidak ada (mungkin dihapus dari sesi lain).'); renderAdmin(); return; }
       acc.passwordHash = await hashPassword(newPass);
       await saveValidatorAccounts();
       showToast('Password '+acc.name+' berhasil direset');
