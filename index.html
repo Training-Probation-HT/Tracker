@@ -680,7 +680,7 @@ async function kvFetchAll(){
   const res = await fetch(TRACKER_API_URL);
   const json = await res.json();
   if(!json.ok) throw new Error(json.error || 'Gagal memuat data');
-  return { data: json.data || {}, elearning: json.elearning || {}, karyawanSheet: json.karyawanSheet || [] };
+  return { data: json.data || {}, elearning: json.elearning || {}, karyawanSheet: json.karyawanSheet || [], checklistDepts: json.checklistDepts || null };
 }
 
 // Ambil progress SATU karyawan aja dari server (bukan sekaligus semua karyawan).
@@ -734,37 +734,44 @@ function showToast(msg){
 async function loadAll(){
   let kvData = {};
   let karyawanSheetRows = [];
+  let checklistFromServer = null;
   state.elearning = {};
   try{
     const fetched = await kvFetchAll();
     kvData = fetched.data;
     state.elearning = fetched.elearning;
     karyawanSheetRows = fetched.karyawanSheet || [];
+    checklistFromServer = fetched.checklistDepts;
   }catch(e){
     console.error('Gagal memuat data dari server:', e);
     state.loadError = true;
   }
 
-  try{
-    const cfgRaw = kvData['checklist_config'];
-    state.depts = cfgRaw ? JSON.parse(cfgRaw) : null;
-  }catch(e){ state.depts = null; }
-  if(!state.depts){
+  // checklistFromServer null artinya GAGAL diambil (fetch keseluruhan gagal, atau
+  // pembacaan sheet "Checklist" sempat error di server) — beda dari sheet yang
+  // BENERAN kosong (checklistFromServer tetap objek valid, cuma items-nya kosong
+  // semua). Bedanya penting: kalau gagal diambil, jangan pernah dianggap "pertama
+  // kali dibuka" lalu ditimpa data bawaan — itu penyebab insiden checklist
+  // ke-reset kemarin (jangan sampai terulang).
+  const sheetHasAnyItems = !!checklistFromServer && Object.keys(checklistFromServer).some(k=>(checklistFromServer[k].items||[]).length>0);
+
+  if(checklistFromServer && sheetHasAnyItems){
+    state.depts = checklistFromServer;
+  } else {
     // Pakai bawaan dulu buat TAMPILAN, biar aplikasi tidak kosong total.
     state.depts = JSON.parse(JSON.stringify(DEFAULT_DEPTS));
     Object.keys(state.depts).forEach(k=>{
       const maxNo = state.depts[k].items.reduce((m,it)=>Math.max(m,it.no),0);
       state.depts[k].nextNo = maxNo + 1;
     });
-    if(!state.loadError){
-      // Cuma simpan balik ke server kalau ini BENERAN pertama kali dibuka (server
-      // berhasil dihubungi & memang belum pernah ada checklist_config sama sekali).
+    if(!state.loadError && checklistFromServer && !sheetHasAnyItems){
+      // Sheet BERHASIL dibaca & memang genuinely kosong (dipakai pertama kalinya) —
+      // baru di titik ini aman untuk simpan data bawaan sebagai awalan.
       await saveDepts();
     }
-    // Kalau state.loadError true (server gagal dihubungi tadi), JANGAN simpan apa
-    // pun di sini — checklist asli yang sudah ada di server (hasil edit/import
-    // sebelumnya) bisa ketiban data bawaan ini gara-gara gangguan jaringan sesaat,
-    // padahal sebenarnya datanya baik-baik saja di server, cuma gagal diambil kali ini.
+    // Kalau checklistFromServer null (gagal diambil) ATAU state.loadError true,
+    // JANGAN simpan apa pun di sini — checklist asli di sheet (kalau memang ada)
+    // tetap aman, cuma tidak berhasil ditampilkan kali ini karena gangguan sesaat.
   }
   try{
     const empRaw = kvData['employees'];
@@ -876,10 +883,11 @@ async function savePanduan(){
 async function refreshDeptsFromServer(){
   try{
     const fetched = await kvFetchAll();
-    const cfgRaw = fetched.data['checklist_config'];
-    if(cfgRaw) state.depts = JSON.parse(cfgRaw);
+    if(fetched.checklistDepts && Object.keys(fetched.checklistDepts).some(k=>(fetched.checklistDepts[k].items||[]).length>0)){
+      state.depts = fetched.checklistDepts;
+    }
   }catch(e){
-    console.error('Gagal ambil checklist_config terbaru, pakai data yang ada di browser', e);
+    console.error('Gagal ambil checklist terbaru, pakai data yang ada di browser', e);
     // Kalau gagal (misal lagi offline), tetap lanjut pakai state.depts yang ada
     // daripada memblokir aksi user sepenuhnya — lebih baik dari sebelumnya,
     // walau tidak 100% menghilangkan resiko di kondisi ini.
@@ -887,8 +895,16 @@ async function refreshDeptsFromServer(){
 }
 
 async function saveDepts(){
-  try{ await kvSet('checklist_config', JSON.stringify(state.depts)); }
-  catch(e){ console.error('save checklist config failed', e); showToast('Gagal simpan. Cek koneksi.'); throw e; }
+  try{
+    const res = await fetch(TRACKER_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ type: 'save_checklist', depts: state.depts })
+    });
+    const json = await res.json();
+    if(!json.ok) throw new Error(json.error || 'Gagal menyimpan checklist');
+  }
+  catch(e){ console.error('save checklist failed', e); showToast('Gagal simpan. Cek koneksi.'); throw e; }
 }
 
 async function saveEmployees(){
