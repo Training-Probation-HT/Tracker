@@ -693,6 +693,21 @@ async function fetchProgressFromServer(empId){
   return json.progress ? JSON.parse(json.progress) : {};
 }
 
+// Ambil progress BANYAK karyawan sekaligus dalam SATU kali panggilan server —
+// jauh lebih cepat dibanding manggil fetchProgressFromServer() satu-satu berkali-kali,
+// karena server cukup baca sheet KV_Store SEKALI buat semua karyawan ini.
+async function fetchProgressBatchFromServer(empIds){
+  const res = await fetch(TRACKER_API_URL + '?empIds=' + empIds.map(encodeURIComponent).join(','));
+  const json = await res.json();
+  if(!json.ok) throw new Error(json.error || 'Gagal memuat progres karyawan');
+  const result = {};
+  empIds.forEach(id=>{
+    const raw = json.progressBatch ? json.progressBatch['progress_'+id] : null;
+    try{ result[id] = raw ? JSON.parse(raw) : {}; }catch(e){ result[id] = {}; }
+  });
+  return result;
+}
+
 // Nama dinormalisasi (trim + huruf kecil + spasi dirapikan) buat cocokin
 // entri dari sheet "Karyawan" (hasil auto-sync E-Learning) dengan state.employees.
 function normalizeNamaTT(s){ return String(s||'').trim().toLowerCase().replace(/\s+/g,' '); }
@@ -1714,14 +1729,25 @@ function renderLeader(){
 }
 
 // Preload progress buat sekumpulan karyawan (dipakai pas outlet/departemen dipilih,
-// atau pas Dashboard nampilin banyak karyawan sekaligus). Diambil per-kelompok kecil
-// (8 karyawan sekaligus), bukan satu-satu (lambat) ATAU semuanya sekaligus dalam 1
-// waktu (bisa bikin server Apps Script keteteran kalau karyawannya udah ratusan).
+// atau pas Dashboard nampilin banyak karyawan sekaligus). Diambil dalam SATU kali
+// panggilan bulk (bukan satu-satu, bukan juga batch kecil berkali-kali) — jauh
+// lebih cepat karena server cukup baca sheet KV_Store sekali buat semuanya.
+// Dipecah per 100 karyawan kalau daftarnya sangat besar, biar 1 request tidak
+// kepanjangan URL-nya. Kalau bulk gagal (misal server belum sempat di-deploy versi
+// baru), otomatis jatuh balik ke cara lama satu-satu, biar tetap jalan.
 async function preloadProgressFor(empList){
-  const BATCH_SIZE = 8;
-  for(let i=0; i<empList.length; i+=BATCH_SIZE){
-    const batch = empList.slice(i, i+BATCH_SIZE);
-    await Promise.all(batch.map(e=>loadProgress(e.id)));
+  const needed = empList.filter(e=>!state.progress[e.id]);
+  if(needed.length === 0) return;
+  const CHUNK_SIZE = 100;
+  for(let i=0; i<needed.length; i+=CHUNK_SIZE){
+    const chunk = needed.slice(i, i+CHUNK_SIZE);
+    try{
+      const results = await fetchProgressBatchFromServer(chunk.map(e=>e.id));
+      chunk.forEach(e=>{ state.progress[e.id] = results[e.id] || {}; });
+    }catch(err){
+      console.error('Gagal ambil progress batch, jatuh balik ke cara satu-satu', err);
+      await Promise.all(chunk.map(e=>loadProgress(e.id)));
+    }
   }
 }
 
