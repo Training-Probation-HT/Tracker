@@ -750,13 +750,21 @@ async function loadAll(){
     state.depts = cfgRaw ? JSON.parse(cfgRaw) : null;
   }catch(e){ state.depts = null; }
   if(!state.depts){
-    // pertama kali dibuka: pakai bawaan, hitung nextNo per departemen, lalu simpan
+    // Pakai bawaan dulu buat TAMPILAN, biar aplikasi tidak kosong total.
     state.depts = JSON.parse(JSON.stringify(DEFAULT_DEPTS));
     Object.keys(state.depts).forEach(k=>{
       const maxNo = state.depts[k].items.reduce((m,it)=>Math.max(m,it.no),0);
       state.depts[k].nextNo = maxNo + 1;
     });
-    await saveDepts();
+    if(!state.loadError){
+      // Cuma simpan balik ke server kalau ini BENERAN pertama kali dibuka (server
+      // berhasil dihubungi & memang belum pernah ada checklist_config sama sekali).
+      await saveDepts();
+    }
+    // Kalau state.loadError true (server gagal dihubungi tadi), JANGAN simpan apa
+    // pun di sini — checklist asli yang sudah ada di server (hasil edit/import
+    // sebelumnya) bisa ketiban data bawaan ini gara-gara gangguan jaringan sesaat,
+    // padahal sebenarnya datanya baik-baik saja di server, cuma gagal diambil kali ini.
   }
   try{
     const empRaw = kvData['employees'];
@@ -825,7 +833,14 @@ async function loadAll(){
   try{
     const pinRaw = kvData['admin_pin'];
     if(pinRaw){ state.adminPin = String(pinRaw); }
-    else{ await saveAdminPin(); }
+    else if(!state.loadError){
+      // Sama seperti checklist_config: cuma simpan PIN default balik ke server
+      // kalau BENERAN belum pernah ada PIN sama sekali, bukan gara-gara gagal
+      // ambil data tadi (state.loadError). Kalau tidak dijaga, PIN Admin yang
+      // sudah pernah diganti bisa ke-reset balik ke "1234" gara-gara gangguan
+      // jaringan sesaat — persis kejadian yang sempat dialami.
+      await saveAdminPin();
+    }
   }catch(e){ /* pakai default */ }
   try{
     const pdRaw = kvData['panduan_text'];
