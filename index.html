@@ -643,6 +643,7 @@ let state = {
   elearning: {},         // map nama (dinormalisasi) -> {b1,b2,b3,pct} dari spreadsheet e-learning (read-only)
   validatorAccounts: [], // akun validator terdaftar: {email, name, passwordHash, createdAt}
   session: null,         // {email, name, role: 'leader'|'validator'}
+  sessionToken: null,    // token sesi dari server — WAJIB disertakan di semua permintaan data
   authView: "login",     // "login" | "signup"
   authRole: "leader",    // "leader" | "validator" — akun mana yang dipakai
   authError: "",
@@ -664,6 +665,43 @@ let state = {
 // Contoh: "https://script.google.com/macros/s/AKfycb.../exec"
 const TRACKER_API_URL = "https://script.google.com/macros/s/AKfycbzDn8gs1DxjE99NkF0k4XlwEVe9hU129pjeK8WdLtGP7V0VLy6ap82y5a6nMuvnpaHV/exec";
 
+// ---------- AUTENTIKASI ----------
+// Login/daftar/cek PIN Admin TIDAK butuh token yang sudah ada (justru INI cara
+// dapat token). Password sengaja dikirim polos di body POST (bukan lewat URL) —
+// aman karena selalu lewat HTTPS, dan di server langsung di-hash+dibandingkan,
+// tidak pernah disimpan/dikembalikan mentah.
+async function authRequest(type, payload){
+  const res = await fetch(TRACKER_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(Object.assign({ type: type }, payload))
+  });
+  const json = await res.json();
+  if(!json.ok) throw new Error(json.error || 'Permintaan gagal');
+  return json;
+}
+
+async function validateTokenWithServer(token){
+  try{
+    const res = await fetch(TRACKER_API_URL + '?action=validate_token&token=' + encodeURIComponent(token));
+    const json = await res.json();
+    return (json.ok && json.valid) ? json.session : null;
+  }catch(e){ return null; }
+}
+
+// Dipanggil begitu login/daftar/cek-PIN berhasil. Simpan token, lalu BARU di
+// titik ini muatan data besar (checklist, karyawan, akun, dst) diambil dari
+// server — bukan lagi diambil di awal sebelum ada yang login sama sekali.
+async function onAuthSuccess(result){
+  state.sessionToken = result.token;
+  state.session = { email: result.email, name: result.name, role: result.role };
+  if(result.role === 'leader') state.leaderName = result.name;
+  state.authDraftEmail = ""; state.authDraftName = "";
+  try{ localStorage.setItem('tt_session_token', result.token); }catch(e){}
+  state.authError = '';
+  await loadAll();
+}
+
 function postToSheet(payload){
   if(!TRACKER_API_URL) return;
   try{
@@ -671,14 +709,14 @@ function postToSheet(payload){
       method: 'POST',
       mode: 'no-cors', // fire-and-forget untuk log audit, tidak perlu baca respons
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(Object.assign({ token: state.sessionToken }, payload))
     }).catch(function(err){ console.error('Sync log ke Google Sheet gagal:', err); });
   }catch(err){ console.error('Sync log ke Google Sheet gagal:', err); }
 }
 
 // ---------- KV STORE (baca/tulis data utama dari Google Sheet) ----------
 async function kvFetchAll(){
-  const res = await fetch(TRACKER_API_URL);
+  const res = await fetch(TRACKER_API_URL + '?token=' + encodeURIComponent(state.sessionToken));
   const json = await res.json();
   if(!json.ok) throw new Error(json.error || 'Gagal memuat data');
   return { data: json.data || {}, elearning: json.elearning || {}, karyawanSheet: json.karyawanSheet || [], checklistDepts: json.checklistDepts || null };
@@ -688,7 +726,7 @@ async function kvFetchAll(){
 // Dipanggil lewat loadProgress() — supaya buka halaman jadi jauh lebih ringan,
 // terutama begitu jumlah karyawan/outlet makin banyak ke depannya.
 async function fetchProgressFromServer(empId){
-  const res = await fetch(TRACKER_API_URL + '?empId=' + encodeURIComponent(empId));
+  const res = await fetch(TRACKER_API_URL + '?empId=' + encodeURIComponent(empId) + '&token=' + encodeURIComponent(state.sessionToken));
   const json = await res.json();
   if(!json.ok) throw new Error(json.error || 'Gagal memuat progres karyawan');
   return json.progress ? JSON.parse(json.progress) : {};
@@ -698,7 +736,7 @@ async function fetchProgressFromServer(empId){
 // jauh lebih cepat dibanding manggil fetchProgressFromServer() satu-satu berkali-kali,
 // karena server cukup baca sheet KV_Store SEKALI buat semua karyawan ini.
 async function fetchProgressBatchFromServer(empIds){
-  const res = await fetch(TRACKER_API_URL + '?empIds=' + empIds.map(encodeURIComponent).join(','));
+  const res = await fetch(TRACKER_API_URL + '?empIds=' + empIds.map(encodeURIComponent).join(',') + '&token=' + encodeURIComponent(state.sessionToken));
   const json = await res.json();
   if(!json.ok) throw new Error(json.error || 'Gagal memuat progres karyawan');
   const result = {};
@@ -717,7 +755,7 @@ async function kvSet(key, value){
   const res = await fetch(TRACKER_API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ type: 'kv_set', key: key, value: value })
+    body: JSON.stringify({ type: 'kv_set', key: key, value: value, token: state.sessionToken })
   });
   const json = await res.json();
   if(!json.ok) throw new Error(json.error || 'Gagal menyimpan data');
@@ -728,7 +766,7 @@ async function kvDelete(key){
   const res = await fetch(TRACKER_API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ type: 'kv_delete', key: key })
+    body: JSON.stringify({ type: 'kv_delete', key: key, token: state.sessionToken })
   });
   const json = await res.json();
   if(!json.ok) throw new Error(json.error || 'Gagal menghapus data');
@@ -741,7 +779,7 @@ async function uploadFotoToServer(dataUrl, employeeName, bulan){
   const res = await fetch(TRACKER_API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ type: 'upload_foto', dataUrl: dataUrl, employeeName: employeeName, bulan: bulan })
+    body: JSON.stringify({ type: 'upload_foto', dataUrl: dataUrl, employeeName: employeeName, bulan: bulan, token: state.sessionToken })
   });
   const json = await res.json();
   if(!json.ok) throw new Error(json.error || 'Gagal upload foto');
@@ -851,40 +889,17 @@ async function loadAll(){
     state.validatorAccounts = vaAccRaw ? JSON.parse(vaAccRaw) : [];
   }catch(e){ state.validatorAccounts = []; }
 
-  // cek sesi login tersimpan di perangkat ini; validasi ulang ke daftar akun
-  // (kalau akunnya sudah dihapus admin, sesi lama otomatis tidak berlaku)
-  try{
-    const savedEmail = localStorage.getItem('tt_session_email');
-    const savedRole = localStorage.getItem('tt_session_role') || 'leader';
-    if(savedEmail){
-      const pool = savedRole === 'validator' ? state.validatorAccounts : state.leaderAccounts;
-      const acc = pool.find(a=>a.email.toLowerCase()===savedEmail.toLowerCase());
-      if(acc){
-        state.session = { email: acc.email, name: acc.name, role: savedRole };
-        if(savedRole === 'leader') state.leaderName = acc.name;
-      } else {
-        localStorage.removeItem('tt_session_email');
-        localStorage.removeItem('tt_session_role');
-      }
-    }
-  }catch(e){ /* abaikan */ }
+  // Catatan: pemulihan sesi login tersimpan sekarang ditangani lewat token
+  // (lihat bootstrap() di paling bawah file) — BUKAN lagi lewat email/role di
+  // localStorage seperti sebelumnya. Kalau loadAll() ini dipanggil, artinya
+  // state.session (kalau ada) sudah pasti hasil validasi token yang benar.
 
   try{
     const otRaw = kvData['outlets_list'];
     state.outlets = otRaw ? JSON.parse(otRaw) : [];
   }catch(e){ state.outlets = []; }
-  try{
-    const pinRaw = kvData['admin_pin'];
-    if(pinRaw){ state.adminPin = String(pinRaw); }
-    else if(!state.loadError){
-      // Sama seperti checklist_config: cuma simpan PIN default balik ke server
-      // kalau BENERAN belum pernah ada PIN sama sekali, bukan gara-gara gagal
-      // ambil data tadi (state.loadError). Kalau tidak dijaga, PIN Admin yang
-      // sudah pernah diganti bisa ke-reset balik ke "1234" gara-gara gangguan
-      // jaringan sesaat — persis kejadian yang sempat dialami.
-      await saveAdminPin();
-    }
-  }catch(e){ /* pakai default */ }
+  // admin_pin SENGAJA tidak lagi dikirim server ke browser sama sekali (dicek
+  // lewat check_admin_pin di server) — tidak ada lagi yang perlu dimuat di sini.
   try{
     const pdRaw = kvData['panduan_text'];
     state.panduanText = pdRaw || "Panduan belum diisi oleh Admin.";
@@ -955,7 +970,7 @@ async function saveDepts(){
     const res = await fetch(TRACKER_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ type: 'save_checklist', depts: state.depts })
+      body: JSON.stringify({ type: 'save_checklist', depts: state.depts, token: state.sessionToken })
     });
     const json = await res.json();
     if(!json.ok) throw new Error(json.error || 'Gagal menyimpan checklist');
@@ -1145,24 +1160,22 @@ function findAccountByEmail(email, role){
   return accountsForRole(role).find(a=>a.email.toLowerCase()===e);
 }
 
-function setSession(acc, role){
-  state.session = { email: acc.email, name: acc.name, role: role };
-  if(role === 'leader') state.leaderName = acc.name;
-  state.authDraftEmail = "";
-  state.authDraftName = "";
-  try{
-    localStorage.setItem('tt_session_email', acc.email);
-    localStorage.setItem('tt_session_role', role);
-  }catch(e){}
-}
+// (setSession lama sudah dihapus — digantikan onAuthSuccess() yang berbasis token)
 
 function logout(){
+  const tokenToRevoke = state.sessionToken;
+  if(tokenToRevoke){
+    // Fire-and-forget: hapus sesi di server juga (bukan cuma di browser).
+    // Tidak perlu ditunggu — tampilan logout tetap instan buat user.
+    authRequest('logout', { token: tokenToRevoke }).catch(function(e){ console.error('Gagal hapus sesi di server:', e); });
+  }
   state.session = null;
+  state.sessionToken = null;
   state.leaderName = "";
   state.currentEmployeeId = null;
+  state.loaded = false; // paksa ambil ulang data pas login berikutnya, jangan pakai sisa punya sesi lama
   try{
-    localStorage.removeItem('tt_session_email');
-    localStorage.removeItem('tt_session_role');
+    localStorage.removeItem('tt_session_token');
   }catch(e){}
   state.authView = 'login';
   state.authError = '';
@@ -1492,26 +1505,26 @@ function updateMainTabLabel(){
 }
 
 function render(){
-  if(!state.loaded){ root.innerHTML = '<div class="tt-empty">Memuat data…</div>'; return; }
-  updateMainTabLabel();
   if(state.tab === 'admin'){
-    if(!state.adminUnlocked) renderAdminGate();
-    else renderAdmin();
+    if(!state.adminUnlocked){ renderAdminGate(); return; } // gerbang PIN gak butuh data server
+    if(!state.loaded){ root.innerHTML = '<div class="tt-empty">Memuat data…</div>'; return; }
+    renderAdmin();
     return;
   }
+  if(!state.session){ renderAuth(); return; } // form login gak butuh data server
+  if(!state.loaded){ root.innerHTML = '<div class="tt-empty">Memuat data…</div>'; return; }
+  updateMainTabLabel();
   if(state.tab === 'dashboard'){
     // Diizinkan lewat 2 jalur: sudah unlock Admin (PIN), atau login sebagai Validator.
     if(state.adminUnlocked || (state.session && state.session.role === 'validator')){
       renderDashboard();
       return;
     }
-    if(!state.session){ renderAuth(); return; }
     // Login sebagai Leader -> tidak diizinkan, kembalikan ke tab checklist miliknya.
     state.tab = 'leader';
     render();
     return;
   }
-  if(!state.session){ renderAuth(); return; }
   if(state.tab === 'leader'){
     if(state.session.role === 'validator') renderValidator();
     else renderLeader();
@@ -1598,18 +1611,16 @@ function renderAuth(){
       if(!name){ state.authError = 'Nama wajib diisi.'; renderAuth(); return; }
       if(password.length < 6){ state.authError = 'Password minimal 6 karakter.'; renderAuth(); return; }
       if(password !== password2){ state.authError = 'Password & ulangi password tidak sama.'; renderAuth(); return; }
-      if(findAccountByEmail(email, role)){ state.authError = 'Email ini sudah terdaftar sebagai '+roleLabel+'. Coba masuk (login).'; renderAuth(); return; }
 
       btn.disabled = true; btn.textContent = 'Mendaftarkan...';
       try{
-        const passwordHash = await hashPassword(password);
-        const acc = { email, name, passwordHash, createdAt: new Date().toISOString() };
-        await refreshAccountsFromServer();
-        if(role === 'validator'){ state.validatorAccounts.push(acc); await saveValidatorAccounts(); }
-        else { state.leaderAccounts.push(acc); await saveLeaderAccounts(); }
-        setSession(acc, role);
-        state.authError = '';
-        render();
+        const result = await authRequest('register', { email, name, password, role });
+        if(!result.success){
+          state.authError = result.message || 'Gagal mendaftar.';
+          renderAuth();
+          return;
+        }
+        await onAuthSuccess(result);
       }catch(e){
         console.error(e);
         state.authError = 'Gagal mendaftar. Cek koneksi internet & coba lagi.';
@@ -1618,21 +1629,13 @@ function renderAuth(){
     } else {
       btn.disabled = true; btn.textContent = 'Memeriksa...';
       try{
-        const acc = findAccountByEmail(email, role);
-        if(!acc){
-          state.authError = 'Anda belum memiliki akun '+roleLabel+'. Klik "Daftar di sini" di bawah untuk mendaftar.';
+        const result = await authRequest('login', { email, password, role });
+        if(!result.success){
+          state.authError = result.message || 'Gagal login.';
           renderAuth();
           return;
         }
-        const passwordHash = await hashPassword(password);
-        if(acc.passwordHash !== passwordHash){
-          state.authError = 'Email atau password salah.';
-          renderAuth();
-          return;
-        }
-        setSession(acc, role);
-        state.authError = '';
-        render();
+        await onAuthSuccess(result);
       }catch(e){
         console.error(e);
         state.authError = 'Gagal login. Cek koneksi internet & coba lagi.';
@@ -1724,13 +1727,29 @@ function renderAdminGate(){
   root.innerHTML = html;
   const input = document.getElementById('adminPinInput');
   const submit = document.getElementById('adminPinSubmit');
-  const tryUnlock = ()=>{
-    if(input.value === String(state.adminPin)){
-      state.adminUnlocked = true;
-      state.adminGateError = "";
-      render();
-    } else {
-      state.adminGateError = "PIN salah, coba lagi.";
+  const tryUnlock = async ()=>{
+    submit.disabled = true; submit.textContent = 'Memeriksa...';
+    try{
+      const result = await authRequest('check_admin_pin', { pin: input.value });
+      if(result.valid){
+        state.sessionToken = result.token;
+        // SENGAJA tidak disimpan ke localStorage — akses Admin tidak boleh
+        // "nempel" otomatis lewat reload halaman, beda dari login Leader/Validator
+        // biasa. Kalau sesi ini KEBETULAN juga sudah login sebagai Leader/Validator
+        // sebelumnya, token mereka yang tersimpan di localStorage tetap aman & tidak
+        // tersentuh oleh baris ini.
+        state.adminUnlocked = true;
+        state.adminGateError = "";
+        if(!state.loaded) await loadAll(); else render();
+      } else {
+        state.adminGateError = "PIN salah, coba lagi.";
+        submit.disabled = false; submit.textContent = 'Buka Admin';
+        render();
+      }
+    }catch(e){
+      console.error(e);
+      state.adminGateError = "Gagal memeriksa PIN. Cek koneksi & coba lagi.";
+      submit.disabled = false; submit.textContent = 'Buka Admin';
       render();
     }
   };
@@ -3131,7 +3150,28 @@ function bindAdminEvents(deptKey){
 }
 
 // ---------- INIT ----------
-loadAll();
+// Sebelum ini, halaman langsung ambil SEMUA data begitu dibuka — sebelum ada
+// yang login sama sekali. Sekarang: kalau ada token tersimpan (login sebelumnya
+// di device ini), validasi dulu ke server; kalau valid, pulihkan sesi & baru
+// ambil data. Kalau tidak ada/tidak valid, langsung tampilkan layar login —
+// TANPA mengambil data apa pun dulu (form login tidak butuh data server).
+async function bootstrap(){
+  let savedToken = null;
+  try{ savedToken = localStorage.getItem('tt_session_token'); }catch(e){}
+  if(savedToken){
+    const session = await validateTokenWithServer(savedToken);
+    if(session){
+      state.sessionToken = savedToken;
+      state.session = { email: session.email, name: session.name, role: session.role };
+      if(session.role === 'leader') state.leaderName = session.name;
+      await loadAll();
+      return;
+    }
+    try{ localStorage.removeItem('tt_session_token'); }catch(e){}
+  }
+  render();
+}
+bootstrap();
 
 })();
 </script>
