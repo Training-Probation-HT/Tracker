@@ -1789,7 +1789,7 @@ function renderLeader(){
   if(state.outlet && state.dept){
     const filtered = state.employees.filter(e=>e.outlet===state.outlet && e.department===state.dept);
     html += `<div class="tt-card">
-      <span class="tt-label">Nama Karyawan Baru</span>
+      <span class="tt-label">Karyawan</span>
       <select id="empSelect" class="tt-input">
         <option value="">-- Pilih Karyawan --</option>
         ${filtered.map(e=>{
@@ -1797,18 +1797,7 @@ function renderLeader(){
           return `<option value="${e.id}" ${state.currentEmployeeId===e.id?'selected':''}>${esc(e.name)} — ${st.overallPct}% (Mulai ${e.startDate||'-'})</option>`;
         }).join('')}
       </select>
-      ${filtered.length===0?'<div class="tt-empty">Belum ada karyawan di outlet & departemen ini.</div>':''}
-      <div style="height:10px"></div>
-      <button class="tt-btn tt-btn-brass" id="addEmpBtn" style="width:100%">+ Tambah Karyawan Baru</button>
-      <div id="addEmpForm" style="display:none; margin-top:12px;">
-        <div class="tt-field">
-          <span class="tt-label">Nama Lengkap Karyawan</span>
-          <input type="text" id="newEmpName" class="tt-input" placeholder="Nama lengkap">
-          <div style="font-size:11px; color:var(--terracotta); margin-top:5px; font-weight:600;">Wajib mencantumkan nama sesuai KTP/database (dipakai untuk mencocokkan data e-learning).</div>
-        </div>
-        <div class="tt-field"><span class="tt-label">Join Date</span><input type="date" id="newEmpDate" class="tt-input"></div>
-        <button class="tt-btn tt-btn-primary" id="saveEmpBtn">Simpan Karyawan</button>
-      </div>
+      ${filtered.length===0?'<div class="tt-empty">Belum ada karyawan di outlet & departemen ini. Karyawan baru otomatis muncul di sini setelah dia daftar E-Learning.</div>':''}
     </div>`;
   }
 
@@ -1875,36 +1864,6 @@ function bindLeaderEvents(){
     state.currentEmployeeId = empSelect.value || null;
     if(state.currentEmployeeId) await loadProgress(state.currentEmployeeId);
     render();
-  });
-
-  const addBtn = document.getElementById('addEmpBtn');
-  if(addBtn) addBtn.addEventListener('click', ()=>{
-    document.getElementById('addEmpForm').style.display = 'block';
-    addBtn.style.display = 'none';
-  });
-
-  const saveEmpBtn = document.getElementById('saveEmpBtn');
-  if(saveEmpBtn) saveEmpBtn.addEventListener('click', async ()=>{
-    const name = document.getElementById('newEmpName').value.trim();
-    const date = document.getElementById('newEmpDate').value;
-    if(!name){ showToast('Nama wajib diisi'); return; }
-    const emp = { id: uid(), name, outlet: state.outlet, department: state.dept, startDate: date, createdAt: Date.now() };
-    state.employees.push(emp);
-    await saveEmployees();
-    postToSheet({
-      type: 'employee',
-      timestamp: new Date().toISOString(),
-      leader: state.leaderName,
-      id: emp.id,
-      nama: emp.name,
-      outlet: emp.outlet,
-      departemen: state.depts[emp.department] ? state.depts[emp.department].label : emp.department,
-      tanggalMulai: emp.startDate || ''
-    });
-    state.currentEmployeeId = emp.id;
-    state.progress[emp.id] = {};
-    render();
-    showToast('Karyawan ditambahkan');
   });
 }
 
