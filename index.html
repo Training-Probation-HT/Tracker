@@ -278,6 +278,7 @@
   .tt-table th{
     text-align:left; padding:8px 8px; background:var(--teal); color:var(--cream);
     font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; font-weight:600;
+    position:sticky; top:0; z-index:2;
   }
   .tt-table th:first-child{ border-radius:8px 0 0 0; }
   .tt-table th:last-child{ border-radius:0 8px 0 0; }
@@ -2471,15 +2472,29 @@ async function renderDashboard(){
   if(list.length === 0){
     html += `<div class="tt-empty">Belum ada data karyawan${(state.dashFilterOutlet||state.dashFilterDept||state.dashFilterName)?' untuk filter ini':''}.<br>Mulai isi dari tab "Checklist Belajar".</div>`;
   } else {
-    html += `<div class="tt-card" style="padding:0; overflow-x:auto;">
+    // Hitung dulu semua data per karyawan SATU KALI (dipakai juga buat urutan tabel),
+    // supaya computeStats/computeStatusBelajar tidak dipanggil dobel per karyawan.
+    const rows = list.map(e=>{
+      const st = computeStats(e.id, e.department);
+      const probation = computeStatusBelajar(e);
+      // Progress gabungan buat urutan tabel: rata-rata Theory+Practice kalau data
+      // e-learning-nya ketemu; kalau tidak ketemu, pakai Practice-nya saja (tidak
+      // dianggap 0% cuma karena datanya belum ketemu).
+      const overallProgress = (probation.teoriPct === null || probation.teoriPct === undefined)
+        ? st.overallPct
+        : (probation.teoriPct + st.overallPct) / 2;
+      return { e, st, probation, overallProgress };
+    });
+    // Karyawan dengan progress belajar PALING BANYAK di posisi paling atas.
+    rows.sort((a,b)=> b.overallProgress - a.overallProgress);
+
+    html += `<div class="tt-card" style="padding:0; overflow-x:auto; max-height:70vh; overflow-y:auto;">
       <table class="tt-table">
         <thead><tr>
           <th>Karyawan</th><th>Outlet</th><th>Section</th><th>Theory (E-Learning)</th><th>Practice (Leader Checklist)</th><th>Tahap Saat Ini</th><th>Status Belajar</th><th>Validasi</th>
         </tr></thead>
         <tbody>`;
-    list.forEach(e=>{
-      const st = computeStats(e.id, e.department);
-      const probation = computeStatusBelajar(e);
+    rows.forEach(({e, st, probation})=>{
       const badgeClassMap = { lulus:'lulus', selesai:'selesai', terlambat:'terlambat', tidak:'tidak', proses:'jalan', warn:'warn' };
       const badge = `<span class="tt-badge ${badgeClassMap[probation.kind]}">${esc(probation.label)}</span>`;
       const elCell = probation.teoriPct === null
