@@ -672,14 +672,30 @@ const TRACKER_API_URL = "https://script.google.com/macros/s/AKfycbzDn8gs1DxjE99N
 // aman karena selalu lewat HTTPS, dan di server langsung di-hash+dibandingkan,
 // tidak pernah disimpan/dikembalikan mentah.
 async function authRequest(type, payload){
-  const res = await fetch(TRACKER_API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(Object.assign({ type: type }, payload))
-  });
-  const json = await res.json();
-  if(!json.ok) throw new Error(json.error || 'Permintaan gagal');
-  return json;
+  // Coba sampai 3x kalau server lagi sibuk (antrean penuh). Jeda makin panjang
+  // tiap percobaan, supaya tidak malah menambah beban. Ini bikin kesibukan
+  // sesaat tidak terasa sama sekali oleh pengguna.
+  let lastError = null;
+  for(let attempt = 0; attempt < 3; attempt++){
+    if(attempt > 0) await new Promise(r=>setTimeout(r, attempt * 1200));
+    try{
+      const res = await fetch(TRACKER_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(Object.assign({ type: type }, payload))
+      });
+      const json = await res.json();
+      if(json.ok) return json;
+      lastError = new Error(json.error || 'Permintaan gagal');
+      // Cuma diulang kalau memang karena sibuk; kesalahan lain (mis. PIN salah)
+      // tidak perlu diulang-ulang.
+      if(!String(json.error||'').toLowerCase().includes('sibuk')) throw lastError;
+    }catch(e){
+      lastError = e;
+      if(!String(e.message||'').toLowerCase().includes('sibuk')) throw e;
+    }
+  }
+  throw lastError || new Error('Permintaan gagal');
 }
 
 async function validateTokenWithServer(token){
