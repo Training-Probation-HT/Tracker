@@ -1751,7 +1751,8 @@ function renderAdminGate(){
       }
     }catch(e){
       console.error(e);
-      state.adminGateError = "Gagal memeriksa PIN. Cek koneksi & coba lagi.";
+      // Tampilkan pesan asli dari server biar sebabnya kelihatan, bukan selalu "cek koneksi"
+      state.adminGateError = (e && e.message) ? ("Gagal: " + e.message) : "Gagal memeriksa PIN. Cek koneksi & coba lagi.";
       submit.disabled = false; submit.textContent = 'Buka Admin';
       render();
     }
