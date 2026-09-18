@@ -1624,7 +1624,9 @@ function renderAuth(){
         await onAuthSuccess(result);
       }catch(e){
         console.error(e);
-        state.authError = 'Gagal mendaftar. Cek koneksi internet & coba lagi.';
+        // Tampilkan pesan asli dari server kalau ada, jangan selalu bilang "cek koneksi" —
+        // kalau masalahnya bukan koneksi, pesan generik malah bikin susah dilacak.
+        state.authError = (e && e.message) ? ('Gagal mendaftar: ' + e.message) : 'Gagal mendaftar. Cek koneksi internet & coba lagi.';
         renderAuth();
       }
     } else {
@@ -1639,7 +1641,7 @@ function renderAuth(){
         await onAuthSuccess(result);
       }catch(e){
         console.error(e);
-        state.authError = 'Gagal login. Cek koneksi internet & coba lagi.';
+        state.authError = (e && e.message) ? ('Gagal login: ' + e.message) : 'Gagal login. Cek koneksi internet & coba lagi.';
         renderAuth();
       }
     }
