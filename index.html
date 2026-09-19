@@ -648,6 +648,7 @@ let state = {
   authView: "login",     // "login" | "signup"
   authRole: "leader",    // "leader" | "validator" — akun mana yang dipakai
   authError: "",
+  authInfo: "",        // pesan informasi (mis. "kode sudah dikirim") di layar lupa-password
   authDraftName: "",
   authDraftEmail: "",
   outlets: [],           // daftar nama outlet (dikelola dari tab Admin)
@@ -1551,6 +1552,9 @@ function render(){
 
 // ---------- AUTH SCREEN (LOGIN / SIGNUP) ----------
 function renderAuth(){
+  // Tampilan "lupa password" ditangani terpisah supaya alur login biasa tetap sederhana
+  if(state.authView === 'forgot' || state.authView === 'reset'){ renderForgotPassword(); return; }
+
   const isSignup = state.authView === 'signup';
   const role = state.authRole; // 'leader' | 'validator'
   const roleLabel = role === 'validator' ? 'Validator' : 'Leader';
@@ -1588,7 +1592,8 @@ function renderAuth(){
       <div class="tt-field"><span class="tt-label">Email</span><input type="text" id="authEmail" class="tt-input" placeholder="nama@email.com" value="${esc(state.authDraftEmail)}"></div>
       ${passwordFieldHtml('authPassword', 'Password', 'Password')}
       <button class="tt-btn tt-btn-primary" id="authSubmitBtn" style="width:100%;">Masuk</button>
-      <div style="text-align:center; margin-top:12px; font-size:12.5px;">Belum punya akun? <a href="#" id="authSwitch" style="color:var(--teal); font-weight:600;">Daftar di sini</a></div>`;
+      <div style="text-align:center; margin-top:10px; font-size:12.5px;"><a href="#" id="forgotPwLink" style="color:var(--sage); font-weight:600;">Lupa password?</a></div>
+      <div style="text-align:center; margin-top:8px; font-size:12.5px;">Belum punya akun? <a href="#" id="authSwitch" style="color:var(--teal); font-weight:600;">Daftar di sini</a></div>`;
   }
   html += `</div>`;
 
@@ -1607,6 +1612,15 @@ function renderAuth(){
     e.preventDefault();
     state.authView = isSignup ? 'login' : 'signup';
     state.authError = '';
+    renderAuth();
+  });
+
+  const forgotLink = document.getElementById('forgotPwLink');
+  if(forgotLink) forgotLink.addEventListener('click', (e)=>{
+    e.preventDefault();
+    state.authDraftEmail = document.getElementById('authEmail').value.trim();
+    state.authView = 'forgot';
+    state.authError = ''; state.authInfo = '';
     renderAuth();
   });
 
@@ -1660,6 +1674,120 @@ function renderAuth(){
         state.authError = (e && e.message) ? ('Gagal login: ' + e.message) : 'Gagal login. Cek koneksi internet & coba lagi.';
         renderAuth();
       }
+    }
+  });
+}
+
+// ---------- LUPA PASSWORD ----------
+// Dua tahap: (1) minta kode dikirim ke email, (2) masukkan kode + password baru.
+function renderForgotPassword(){
+  const tahapKode = state.authView === 'reset';
+  const role = state.authRole;
+  const roleLabel = role === 'validator' ? 'Validator' : 'Leader';
+
+  let html = `<div class="tt-card">
+    <div style="font-weight:700; font-size:16px; font-family:'Fraunces',serif; color:var(--teal); margin-bottom:2px;">Lupa Password</div>
+    <div style="font-size:12.5px; color:var(--sage); margin-bottom:14px;">
+      ${tahapKode
+        ? 'Masukkan kode yang dikirim ke email kamu, lalu buat password baru.'
+        : 'Masukkan email akun ' + roleLabel + ' kamu. Kami kirimkan kode verifikasi ke email itu.'}
+    </div>`;
+
+  if(state.authError){
+    html += `<div style="font-size:12px; color:var(--terracotta); font-weight:600; margin-bottom:10px;">${esc(state.authError)}</div>`;
+  }
+  if(state.authInfo){
+    html += `<div style="font-size:12px; color:var(--teal); font-weight:600; margin-bottom:10px;">${esc(state.authInfo)}</div>`;
+  }
+
+  if(!tahapKode){
+    html += `
+      <div class="tt-field"><span class="tt-label">Email</span><input type="text" id="fpEmail" class="tt-input" placeholder="nama@email.com" value="${esc(state.authDraftEmail)}"></div>
+      <button class="tt-btn tt-btn-primary" id="fpSendBtn" style="width:100%;">Kirim Kode ke Email</button>`;
+  } else {
+    html += `
+      <div class="tt-field"><span class="tt-label">Kode dari Email</span><input type="text" inputmode="numeric" id="fpCode" class="tt-input" placeholder="6 angka"></div>
+      ${passwordFieldHtml('fpNewPw', 'Password Baru', 'Minimal 6 karakter')}
+      ${passwordFieldHtml('fpNewPw2', 'Ulangi Password Baru', 'Ulangi password baru')}
+      <button class="tt-btn tt-btn-primary" id="fpConfirmBtn" style="width:100%;">Simpan Password Baru</button>
+      <div style="text-align:center; margin-top:10px; font-size:12.5px;"><a href="#" id="fpResendLink" style="color:var(--sage); font-weight:600;">Belum menerima kode? Kirim ulang</a></div>`;
+  }
+
+  html += `<div style="text-align:center; margin-top:12px; font-size:12.5px;"><a href="#" id="fpBackLink" style="color:var(--teal); font-weight:600;">Kembali ke halaman masuk</a></div>
+  </div>`;
+
+  root.innerHTML = html;
+  bindForgotPasswordEvents();
+}
+
+function bindForgotPasswordEvents(){
+  const backLink = document.getElementById('fpBackLink');
+  if(backLink) backLink.addEventListener('click', e=>{
+    e.preventDefault();
+    state.authView = 'login'; state.authError = ''; state.authInfo = '';
+    renderAuth();
+  });
+
+  const kirimKode = async (btn, emailInput)=>{
+    const email = emailInput.trim();
+    if(!email || !isValidEmail(email)){ state.authError = 'Email tidak valid.'; state.authInfo=''; renderForgotPassword(); return; }
+    state.authDraftEmail = email;
+    if(btn){ btn.disabled = true; btn.textContent = 'Mengirim...'; }
+    try{
+      const result = await authRequest('request_password_reset', { email, role: state.authRole });
+      state.authError = '';
+      state.authInfo = result.message || 'Kode sudah dikirim, cek email kamu.';
+      state.authView = 'reset';
+      renderForgotPassword();
+    }catch(e){
+      console.error(e);
+      state.authInfo = '';
+      state.authError = (e && e.message) ? e.message : 'Gagal mengirim kode. Coba lagi.';
+      renderForgotPassword();
+    }
+  };
+
+  const sendBtn = document.getElementById('fpSendBtn');
+  if(sendBtn) sendBtn.addEventListener('click', ()=>{
+    kirimKode(sendBtn, document.getElementById('fpEmail').value);
+  });
+
+  const resendLink = document.getElementById('fpResendLink');
+  if(resendLink) resendLink.addEventListener('click', e=>{
+    e.preventDefault();
+    kirimKode(null, state.authDraftEmail);
+  });
+
+  const confirmBtn = document.getElementById('fpConfirmBtn');
+  if(confirmBtn) confirmBtn.addEventListener('click', async ()=>{
+    const code = document.getElementById('fpCode').value.trim();
+    const pw = document.getElementById('fpNewPw').value;
+    const pw2 = document.getElementById('fpNewPw2').value;
+    if(!code){ state.authError = 'Kode wajib diisi.'; state.authInfo=''; renderForgotPassword(); return; }
+    if(pw.length < 6){ state.authError = 'Password baru minimal 6 karakter.'; state.authInfo=''; renderForgotPassword(); return; }
+    if(pw !== pw2){ state.authError = 'Password baru & ulangannya tidak sama.'; state.authInfo=''; renderForgotPassword(); return; }
+
+    confirmBtn.disabled = true; confirmBtn.textContent = 'Menyimpan...';
+    try{
+      const result = await authRequest('confirm_password_reset', {
+        email: state.authDraftEmail, role: state.authRole, code, newPassword: pw
+      });
+      if(!result.success){
+        state.authInfo = '';
+        state.authError = result.message || 'Gagal mengganti password.';
+        renderForgotPassword();
+        return;
+      }
+      state.authView = 'login';
+      state.authError = '';
+      state.authInfo = '';
+      renderAuth();
+      showToast('Password berhasil diganti. Silakan masuk.');
+    }catch(e){
+      console.error(e);
+      state.authInfo = '';
+      state.authError = (e && e.message) ? e.message : 'Gagal mengganti password. Coba lagi.';
+      renderForgotPassword();
     }
   });
 }
