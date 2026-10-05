@@ -667,6 +667,12 @@ let state = {
 // Contoh: "https://script.google.com/macros/s/AKfycb.../exec"
 const TRACKER_API_URL = "https://script.google.com/macros/s/AKfycbzDn8gs1DxjE99NkF0k4XlwEVe9hU129pjeK8WdLtGP7V0VLy6ap82y5a6nMuvnpaHV/exec";
 
+// Saklar fitur "Lupa Password". Dimatikan sementara karena pengiriman email
+// butuh izin tambahan dari Google yang belum disetujui — dan selama izin itu
+// menggantung, SELURUH skrip ikut ditahan (login pun mati). Ubah jadi true
+// lagi HANYA setelah izin emailnya benar-benar beres di sisi Apps Script.
+const FITUR_LUPA_PASSWORD_AKTIF = true;
+
 // ---------- AUTENTIKASI ----------
 // Login/daftar/cek PIN Admin TIDAK butuh token yang sudah ada (justru INI cara
 // dapat token). Password sengaja dikirim polos di body POST (bukan lewat URL) —
@@ -1592,7 +1598,9 @@ function renderAuth(){
       <div class="tt-field"><span class="tt-label">Email</span><input type="text" id="authEmail" class="tt-input" placeholder="nama@email.com" value="${esc(state.authDraftEmail)}"></div>
       ${passwordFieldHtml('authPassword', 'Password', 'Password')}
       <button class="tt-btn tt-btn-primary" id="authSubmitBtn" style="width:100%;">Masuk</button>
-      <div style="text-align:center; margin-top:10px; font-size:12.5px;"><a href="#" id="forgotPwLink" style="color:var(--sage); font-weight:600;">Lupa password?</a></div>
+      ${FITUR_LUPA_PASSWORD_AKTIF
+        ? `<div style="text-align:center; margin-top:10px; font-size:12.5px;"><a href="#" id="forgotPwLink" style="color:var(--sage); font-weight:600;">Lupa password?</a></div>`
+        : `<div style="text-align:center; margin-top:10px; font-size:11.5px; color:var(--sage);">Lupa password? Hubungi Admin untuk direset.</div>`}
       <div style="text-align:center; margin-top:8px; font-size:12.5px;">Belum punya akun? <a href="#" id="authSwitch" style="color:var(--teal); font-weight:600;">Daftar di sini</a></div>`;
   }
   html += `</div>`;
@@ -1681,6 +1689,26 @@ function renderAuth(){
 // ---------- LUPA PASSWORD ----------
 // Dua tahap: (1) minta kode dikirim ke email, (2) masukkan kode + password baru.
 function renderForgotPassword(){
+  // Pengaman: kalau fitur sedang dimatikan, jangan pernah tampilkan form kode &
+  // password baru — itu cuma bikin bingung karena isiannya tidak akan diproses.
+  if(!FITUR_LUPA_PASSWORD_AKTIF){
+    root.innerHTML = `<div class="tt-card" style="text-align:center;">
+      <div style="font-weight:700; font-size:16px; font-family:'Fraunces',serif; color:var(--teal); margin-bottom:8px;">Lupa Password</div>
+      <div style="font-size:13px; color:var(--ink); line-height:1.6; margin-bottom:14px;">
+        Reset password mandiri sedang dinonaktifkan sementara.<br>
+        Silakan hubungi <strong>Admin</strong> untuk mereset password akun kamu.
+      </div>
+      <a href="#" id="fpBackLink" style="color:var(--teal); font-weight:600; font-size:12.5px;">Kembali ke halaman masuk</a>
+    </div>`;
+    const back = document.getElementById('fpBackLink');
+    if(back) back.addEventListener('click', e=>{
+      e.preventDefault();
+      state.authView = 'login'; state.authError = ''; state.authInfo = '';
+      renderAuth();
+    });
+    return;
+  }
+
   const tahapKode = state.authView === 'reset';
   const role = state.authRole;
   const roleLabel = role === 'validator' ? 'Validator' : 'Leader';
